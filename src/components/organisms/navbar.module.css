@@ -1,0 +1,17 @@
+/* components/organisms/navbar.module.css */
+.navbar {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 10;
+  transition: background-color 0.3s ease;
+}
+
+.navbarTransparent {
+  background-color: transparent;
+}
+
+.navbarColored {
+  background-color: #161D6F;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
