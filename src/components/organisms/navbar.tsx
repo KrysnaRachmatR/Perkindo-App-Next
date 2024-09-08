@@ -17,10 +17,13 @@ const Navbar = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <div className="flex-shrink-0">
-                <a href="/">
-                <img src="images/logo.png" alt="logo-perkindo" className="h-2 w-2"/>
-                 <span className="text-white font-bold text-2xl ml-4">PERKINDO</span>
+                <a href="/" className="flex items-center">
+                <img src="/images/logo.png" alt="logo-perkindo" className="h-14 w-14"/>
+                <span className="text-white font-bold text-2xl ml-4">PERKINDO
+                  <br/> <p className="text-sm">Persatuan Konsultan Indonesia</p>
+                </span>
                 </a>
+
               </div>
             </div>
             <div className="hidden md:block">
