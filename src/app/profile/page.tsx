@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function Profile() {
   return (
-    <div className="flex flex-col min-h-screen">
+    <>
       <Navbar />
 
       {/* Header */}
@@ -15,8 +15,8 @@ export default function Profile() {
           layout="fill"
           objectFit="cover"
         />
-        <div className="absolute inset-0 flex items-center justify-center text-white z-10 font-bold">
-          <p>Tentang PERKINDO KALBAR</p>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <p className="text-white font-bold">Tentang PERKINDO KALBAR</p>
         </div>
       </div>
 
@@ -102,6 +102,6 @@ export default function Profile() {
       </div>
 
       <Footer />
-    </div>
+    </>
   );
 }
