@@ -15,8 +15,7 @@ const Card: React.FC<CardProps> = ({ imageSrc, title, caption }) => {
         <Image
           src={imageSrc}
           alt={title}
-          layout="fill"
-          objectFit="cover"
+          fill// 'fill'
           className="rounded-[15px]"
         />
       </div>

@@ -13,8 +13,7 @@ const ContentSection: React.FC = () => {
           <Image
             src="/images/konstruksi3.jpg"
             alt="Gambar Utama"
-            layout="fill"
-            objectFit="cover"
+            fill
             className="rounded-lg"
           />
         </div>
