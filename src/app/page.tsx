@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "@/components/organisms/navbar";
+import Footer from "@/components/organisms/footer";
+import Card from "@/components/molecules/card";
+import ContentSection from "@/components/molecules/contentSection";
 
 const backgroundImages = [
   "/images/konstruksi.jpg",
@@ -14,12 +17,12 @@ export default function Home() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentImage(prevImage => {
+      setCurrentImage((prevImage) => {
         const currentIndex = backgroundImages.indexOf(prevImage);
         const nextIndex = (currentIndex + 1) % backgroundImages.length;
         return backgroundImages[nextIndex];
       });
-    }, 3000); // Ganti gambar setiap 5 detik
+    }, 3000); // Ganti gambar setiap 3 detik
 
     return () => clearInterval(interval); // Hapus interval saat komponen di-unmount
   }, []);
@@ -34,35 +37,94 @@ export default function Home() {
           backgroundPosition: "center",
           height: "100vh", // Memastikan background menutupi seluruh layar
           width: "100vw",
-          position: 'absolute',
-          top: 0,
-          left:0,
-          opacity:1,
-          transition: 'background-image 1s ease-in-out', // Transisi halus saat gambar berganti
+          position: "relative", // Agar bisa di-scroll bersama konten
+          opacity: 1,
+          transition: "background-image 2s ease-in-out", // Transisi halus saat gambar berganti
         }}
       >
-        <div className="flex items-center justify-center h-full">
-          <h1 className="text-white text-4xl font-bold">Selamat Datang di PERKINDO</h1>
+        {/* Menu Header */}
+        <div className="flex items-center justify-start h-full pl-11">
+          <div className="text-left">
+            <h1 className="text-white text-4xl font-bold mb-1">Persatuan Konsultan Indonesia
+              <br />Kalimantan Barat
+            </h1>
+            <p className="text-white text-lg border-l-[6px] border-[#CCEABB] backdrop-blur-lg bg-white/10 px-4 py-1 inline-block rounded-lg">
+            Asosiasi Perusahaan Konsultan Perencana dan Pengawas
+            </p>
+             <div className="mt-[21px]">
+              <button className="bg-[#161D6F]  text-white px-6 py-2 rounded-[10px]">
+                Read More
+                </button>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="bg-white p-8">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl font-bold mb-4">Konten Utama</h2>
-          <p className="text-lg mb-4">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta. Mauris massa. Vestibulum lacinia arcu eget nulla. 
-          </p>
-          <p className="text-lg mb-4">
-            Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Curabitur sodales ligula in libero. Sed dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh. Aenean quam. In scelerisque sem at dolor suscipit, eget rhoncus libero bibendum. Nulla condimentum turpis sed augue feugiat, id scelerisque mauris venenatis.
-          </p>
-          <p className="text-lg mb-4">
-            Ut tristique purus nec augue fermentum, sed tincidunt felis lacinia. Nunc id ultrices libero. Integer ut erat magna. Sed tempus massa et libero gravida, non gravida turpis auctor. Nam eget mauris nec augue sodales auctor ut non ligula. Aliquam erat volutpat. Phasellus sit amet ipsum arcu. In nec ipsum mauris. Aliquam erat volutpat.
-          </p>
-          <p className="text-lg mb-4">
-            Mauris facilisis, urna at fermentum sagittis, orci sapien bibendum risus, nec maximus metus magna vel nisl. Vestibulum euismod, purus nec congue luctus, metus odio pharetra libero, ut condimentum arcu justo sit amet metus. Fusce viverra, orci sit amet sollicitudin sodales, purus odio tristique dolor, nec scelerisque dolor erat nec urna. Vivamus vulputate lorem vitae magna vestibulum, sed pellentesque justo pharetra.
-          </p>
-          <div className="h-96"></div> {/* Tambahkan ruang kosong untuk memastikan scroll */}
-        </div>
+    {/* Menu Pelayanan */}
+      <div className="bg-[#161D6F] text-white py-16 px-8 w-full">
+    <div className="text-center">
+      <h1 className="text-4xl font-bold mb-8">
+        Pelayanan 
+        <br />
+        Persatuan Konsultan Indonesia
+      </h1>
+    </div>
+    <div className="text-left space-y-4">
+      <p className="text-lg">
+        Organisasi PERKINDO sebagai organisasi Nirlaba tentu mempunyai keterbatasan 
+        ruang gerak dalam melayani kebutuhan anggotanya, baik dari segi kapasitas 
+        sumber daya tenaga dan pendanaan untuk dapat secara cepat memenuhi kebutuhan 
+        anggota yang tersebar di seluruh Indonesia. Sadar akan hal tersebut dan untuk mendapatkan 
+        solusi penyelesaian yang saling menguntungkan, maka DPP PERKINDO Bersama DPD di seluruh Indonesia 
+        berembug untuk memutuskan membentuk Jejaring anak organisasi yang ditugaskan untuk 
+        menjalanlan roda organisasi dalam lingkup tugas yang khusus guna melayani 
+        kebutuhan anggota secara cepat, terukur dan murah seperti :
+      </p>
+      <p className="text-lg">
+        1. Melayani penerimaan anggota baru dan peningkatan klasifikasi anggota yang sudah terdaftar.
+      </p>
+      <p className="text-lg">
+        2. Melayani dan melakukan pelatihan serta pembinaan para anggota untuk meningkatkan profesionalisme dan kemampuan dalam melaksanakan tugas-tugas  sesuai keilmuan dibidangnya masing masing.
+      </p>
+      <p className="text-lg">
+        3. Melayani Pembuatan Pembuatan Berbagai Macam Sertifikat untuk: Sertifikat Badan Usaha, Pembuatan Sertifikat Kompetensi (SKK)
+      </p>
+      <p className="text-lg">
+        4. Melayani pembentukan tempat tempat Pelayanan anggota yang membutuhkan peningkatan Kompetensi yaitu Tempat Uji Kompetensi (TUK).
+      </p>
+      <p className="text-lg mt-4">
+        Untuk melakukan hal tersebut di atas, maka PERKINDO membentuk / mendirikan Sayap /Anak Organisasi yaitu LSBU PT. SERBUJAKONS (PT. Sertifikat Badan Usaha Jasa Konsultansi), Asosiasi Profesi PERTAHKINDO (Persatuan Tenaga Ahli Konsultan Indonesia), dan PT. LSP PERTAHKINDO KONSTRUKSI NASIONAL (LSP PERTAKONAS).
+      </p>
+    </div>
+  </div>
+
+      {/* Menu Galeri */}
+      <div className="p-8 bg-white min-h-screen flex flex-col items-center gap-8">
+      <div className="flex gap-8">
+        <Card
+          imageSrc="/images/konstruksi3.jpg"
+          title="Judul Card 1"
+          caption="Caption untuk card ini."
+        />
+        <Card
+          imageSrc="/images/konstruksi3.jpg"
+          title="Judul Card 2"
+          caption="Caption untuk card ini."
+        />
+        <Card
+          imageSrc="/images/konstruksi3.jpg"
+          title="Judul Card 3"
+          caption="Caption untuk card ini."
+        />
       </div>
+    </div>
+
+     <div>
+      <ContentSection />
+    </div>
+
+      {/* Konten lainnya jika ada */}
+
+      <Footer />
     </>
   );
 }
