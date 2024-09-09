@@ -112,25 +112,24 @@ export default function Home() {
       </div>
 
       {/* Menu Galeri */}
-      <div className="p-8 bg-white min-h-screen flex flex-col items-center gap-8">
-        <div className="flex gap-8">
-          <Card
-            imageSrc="/images/konstruksi3.jpg"
-            title="Judul Card 1"
-            caption="Caption untuk card ini."
-          />
-          <Card
-            imageSrc="/images/konstruksi3.jpg"
-            title="Judul Card 2"
-            caption="Caption untuk card ini."
-          />
-          <Card
-            imageSrc="/images/konstruksi3.jpg"
-            title="Judul Card 3"
-            caption="Caption untuk card ini."
-          />
-        </div>
-      </div>
+      <div className="flex flex-wrap justify-center gap-8 p-8">
+      <Card
+        imageSrc="/images/konstruksi3.jpg"
+        title="Card Title 1"
+        caption="Card Caption 1"
+      />
+      <Card
+        imageSrc="/images/konstruksi3.jpg"
+        title="Card Title 2"
+        caption="Card Caption 2"
+      />
+      <Card
+        imageSrc="/images/konstruksi3.jpg"
+        title="Card Title 2"
+        caption="Card Caption 2"
+      />
+
+    </div>
 
       <div>
         <ContentSection />
