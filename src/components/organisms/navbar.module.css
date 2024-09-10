@@ -1,6 +1,4 @@
 /* components/organisms/navbar.module.css */
-
-/* Navbar default (transparan) */
 .navbar {
   position: fixed;
   width: 100%;
@@ -9,12 +7,10 @@
   transition: background-color 0.3s ease;
 }
 
-/* Navbar transparan (halaman non-kontak) */
 .navbarTransparent {
   background-color: transparent;
 }
 
-/* Navbar berwarna biru (halaman kontak atau saat scroll) */
 .navbarColored {
   background-color: #161D6F;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
