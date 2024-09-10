@@ -11,7 +11,7 @@ export default function Contact() {
         <h1 className="text-2xl font-semibold text-center mb-6">Kalimantan Barat</h1>
 
         {/* Frame utama untuk map, icon, dan alamat */}
-        <div className="w-full max-w-[800px] mx-auto bg-neutral-50 rounded-[40px] shadow-lg p-8 flex flex-col items-center">
+        <div className="w-full max-w-[800px] mx-auto bg-neutral-100 rounded-[40px] shadow-lg p-8 flex flex-col items-center">
           {/* Bagian atas - Map */}
           <div className="w-full h-[350px] mb-8">
             <iframe
