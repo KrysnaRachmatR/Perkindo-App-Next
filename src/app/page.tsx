@@ -36,14 +36,14 @@ export default function Home() {
           backgroundSize: "cover",
           backgroundPosition: "center",
           height: "100vh", // Memastikan background menutupi seluruh layar
-          width: "100vw",
+          width: "99,9vw",
           position: "relative", // Agar bisa di-scroll bersama konten
           opacity: 1,
           transition: "background-image 2s ease-in-out", // Transisi halus saat gambar berganti
         }}
       >
         {/* Menu Header */}
-        <div className="flex items-center justify-start h-full pl-11">
+        <div className="flex items-center justify-start h-full pl-1">
           <div className="text-left">
             <h1 className="text-white text-4xl font-bold mb-1">
               Persatuan Konsultan Indonesia
@@ -53,8 +53,8 @@ export default function Home() {
             <p className="text-white text-lg border-l-[6px] border-[#CCEABB] backdrop-blur-lg bg-white/10 px-4 py-1 inline-block rounded-lg">
               Asosiasi Perusahaan Konsultan Perencana dan Pengawas
             </p>
-            <div className="mt-[21px]">
-              <button className="bg-[#161D6F]  text-white px-6 py-2 rounded-[10px]">
+            <div className="mt-[10px]">
+              <button className="bg-[#161D6F]  text-white px-6 py-1 rounded-[10px]">
                 Read More
               </button>
             </div>
