@@ -29,12 +29,13 @@ const Navbar = () => {
       pathname === path ? "border-b-2 border-yellow-500" : ""
     }`;
 
+  
+  const isContactPage = pathname === "/contact";
+
   return (
     <nav
-      className={`${styles.navbar} ${
-        scroll ? styles.navbarColored : styles.navbarTransparent
-      }`}
-    >
+    className={`${styles.navbar} ${scroll ? styles.navbarColored : styles.navbarTransparent}`}
+    style={isContactPage ? { backgroundColor: "#161D6F" } : {}}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
@@ -163,7 +164,6 @@ const Navbar = () => {
               <button className="bg-yellow-500 text-[#161D6F] block px-4 py-2 rounded">
                 Login
               </button>{" "}
-              {/* Replaced login link with button */}
             </div>
           </div>
         )}
