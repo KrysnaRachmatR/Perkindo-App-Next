@@ -1,12 +1,14 @@
+import AgendaSectionOrganism from "@/components/organisms/agendaHeaderOrganism";
 import Footer from "@/components/organisms/footer";
 import Navbar from "@/components/organisms/navbar";
-import MainTemplate from "@/components/templates/LayananTemplate/MainTemplateLayanan";
+import MainTemplateAgenda from "@/components/templates/AgendaTamplate/agenda";
 
 const HomePage = () => {
   return (
     <div>
       <Navbar />
-      <MainTemplate />
+      <AgendaSectionOrganism />
+      <MainTemplateAgenda />
       <Footer />
     </div>
   );

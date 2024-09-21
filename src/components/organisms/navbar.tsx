@@ -36,6 +36,7 @@ const Navbar = () => {
 
   const isContactPage = pathname === "/contact";
   const isLayananPage = pathname === "/layanan";
+  const isAgendaPage = pathname === "/agenda";
 
   return (
     <nav
@@ -43,7 +44,9 @@ const Navbar = () => {
         scroll ? styles.navbarColored : styles.navbarTransparent
       }`}
       style={
-        isContactPage || isLayananPage ? { backgroundColor: "#161D6F" } : {}
+        isContactPage || isLayananPage || isAgendaPage
+          ? { backgroundColor: "#161D6F" }
+          : {}
       }
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -86,16 +89,10 @@ const Navbar = () => {
                     Berita
                   </a>
                   <a
-                    href="/news/current"
+                    href="/agenda"
                     className="block px-4 py-2 text-black hover:bg-gray-200"
                   >
-                    Agenda Berlangsung
-                  </a>
-                  <a
-                    href="/news/past"
-                    className="block px-4 py-2 text-black hover:bg-gray-200"
-                  >
-                    Agenda Sudah Berlangsung
+                    Agenda
                   </a>
                 </div>
               )}
