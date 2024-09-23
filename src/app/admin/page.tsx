@@ -1,45 +1,43 @@
-import Announcements from "@/components/admin/Announcements";
-import AttendanceChart from "@/components/admin/AttendanceChart";
-import CountChart from "@/components/admin/CountChart";
-import EventCalendar from "@/components/admin/EventCalendar";
-import FinanceChart from "@/components/admin/FinanceChart";
-import UserCard from "@/components/admin/UserCard";
+"use client";
 
-const admin = () => {
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Sidebar from "@/components/admin/menu";
+import Navbar from "@/components/admin/navbar";
+
+const AdminPage = () => {
+  const [user, setUser] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    } else {
+      router.push("/login");
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    router.push("/login");
+  };
+
+  if (!user) return null; // Prevent rendering until user is available
+
   return (
-    <div className="p-4 flex gap-4 flex-col md:flex-row">
-      {/* LEFT */}
-      <div className="w-full lg:w-2/3 flex flex-col gap-8">
-        {/* USER CARDS */}
-        <div className="flex gap-4 justify-between flex-wrap">
-          <UserCard type="student" />
-          <UserCard type="teacher" />
-          <UserCard type="parent" />
-          <UserCard type="staff" />
+    <div className="flex">
+      <Sidebar onLogout={handleLogout} />
+      <div className="flex-grow">
+        <Navbar user={user} />
+        <div className="p-4">
+          <h1 className="text-2xl font-bold">Welcome, {user.name}</h1>
+          {/* Add additional content for the admin page here */}
         </div>
-        {/* MIDDLE CHARTS */}
-        <div className="flex gap-4 flex-col lg:flex-row">
-          {/* COUNT CHART */}
-          <div className="w-full lg:w-1/3 h-[450px]">
-            <CountChart />
-          </div>
-          {/* ATTENDANCE CHART */}
-          <div className="w-full lg:w-2/3 h-[450px]">
-            <AttendanceChart />
-          </div>
-        </div>
-        {/* BOTTOM CHART */}
-        <div className="w-full h-[500px]">
-          <FinanceChart />
-        </div>
-      </div>
-      {/* RIGHT */}
-      <div className="w-full lg:w-1/3 flex flex-col gap-8">
-        <EventCalendar />
-        <Announcements />
       </div>
     </div>
   );
 };
 
-export default admin;
+export default AdminPage;

@@ -1,76 +1,44 @@
-import { role } from "@/lib/data";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
-const menuItems = [
-  {
-    title: "MENU",
-    items: [
-      {
-        icon: "/images/dashboard.png",
-        label: "Dashboard",
-        href: "/admin",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/images/berita.png",
-        label: "Berita",
-        href: "/admin/list/berita",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/images/galeri.png",
-        label: "Galeri",
-        href: "/admin/list/galeri",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-      {
-        icon: "/images/agenda.png",
-        label: "Agenda",
-        href: "/admin/list/agenda",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-    ],
-  },
-  {
-    title: "OTHER",
-    items: [
-      {
-        icon: "/images/logout.png",
-        label: "Logout",
-        href: "/admin/logout",
-        visible: ["admin", "teacher", "student", "parent"],
-      },
-    ],
-  },
-];
+const Sidebar = ({ onLogout }) => {
+  const [user, setUser] = useState(null);
 
-const Menu = () => {
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  const menuItems = [
+    { title: "Dashboard", href: "/admin", icon: "/images/dashboard.png" },
+    { title: "Berita", href: "/admin/list/berita", icon: "/images/berita.png" },
+    { title: "Galeri", href: "/admin/list/galeri", icon: "/images/galeri.png" },
+    { title: "Agenda", href: "/admin/list/agenda", icon: "/images/agenda.png" },
+  ];
+
   return (
-    <div className="mt-4 text-sm">
-      {menuItems.map((i) => (
-        <div className="flex flex-col gap-2" key={i.title}>
-          <span className="hidden lg:block text-black font-light my-4">
-            {i.title}
-          </span>
-          {i.items.map((item) => {
-            if (item.visible.includes(role)) {
-              return (
-                <Link
-                  href={item.href}
-                  key={item.label}
-                  className="flex items-center justify-center lg:justify-start gap-4 text-black py-2 md:px-2 rounded-md hover:bg-lamaSkyLight"
-                >
-                  <Image src={item.icon} alt="" width={20} height={20} />
-                  <span className="hidden lg:block">{item.label}</span>
-                </Link>
-              );
-            }
-          })}
-        </div>
-      ))}
+    <div className="flex flex-col bg-gray-800 text-white w-64 min-h-screen">
+      <div className="flex items-center justify-center h-16 border-b border-gray-700">
+        <Image src="/images/logo.png" alt="Logo" width={50} height={50} />
+        <span className="ml-2 text-xl font-bold">Perkindo</span>
+      </div>
+      <div className="flex-grow mt-4">
+        {menuItems.map((item) => (
+          <Link href={item.href} key={item.title} className="flex items-center p-3 hover:bg-gray-700">
+            <Image src={item.icon} alt={item.title} width={24} height={24} />
+            <span className="ml-3">{item.title}</span>
+          </Link>
+        ))}
+      </div>
+      <button onClick={onLogout} className="flex items-center p-3 mt-auto hover:bg-gray-700">
+        <Image src="/images/logout.png" alt="Logout" width={24} height={24} />
+        <span className="ml-3">Logout</span>
+      </button>
     </div>
   );
 };
 
-export default Menu;
+export default Sidebar;
