@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/admin/menu";
-import Navbar from "@/components/admin/navbar";
+import Sidebar from "@/components/admin/Menu";
+import Navbar from "@/components/admin/Navbar";
 
 const AdminPage = () => {
   const [user, setUser] = useState(null);
