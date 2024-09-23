@@ -1,6 +1,6 @@
 import Footer from "@/components/organisms/footer";
 import Navbar from "@/components/organisms/navbar";
-import MainTemplate from "@/components/templates/LayananTemplate/MainTemplateLayanan";
+import MainTemplate from "@/components/templates/MainTemplateLayanan";
 
 const HomePage = () => {
   return (
