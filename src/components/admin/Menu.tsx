@@ -17,6 +17,7 @@ const Sidebar = ({ onLogout }) => {
     { title: "Berita", href: "/admin/list/berita", icon: "/images/berita.png" },
     { title: "Galeri", href: "/admin/list/galeri", icon: "/images/galeri.png" },
     { title: "Agenda", href: "/admin/list/agenda", icon: "/images/agenda.png" },
+    { title: "Anggota", href: "/admin/anggota", icon: "/images/agenda.png" },
   ];
 
   return (
