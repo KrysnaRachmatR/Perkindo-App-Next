@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -11,34 +11,46 @@ const LoginPage = () => {
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:8000/api/login", // Ganti dengan URL Laravel Anda
-        {
-          username,
-          password,
-        }
-      );
-
-      // Simpan token atau user data di localStorage, state management, atau cookie
-      localStorage.setItem("user", JSON.stringify(response.data.user)); // Menyimpan data pengguna
-      router.push("/admin"); // Arahkan ke halaman admin setelah login berhasil
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setError(
-          err.response.data.message || "An error occurred. Please try again."
-        );
-      } else {
-        setError("An error occurred. Please try again.");
-      }
+  // Cek apakah pengguna sudah login
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/admin");
     }
-  };
+  }, [router]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  try {
+    const response = await axios.post(
+      "http://localhost:8000/api/login",
+      {
+        username,
+        password,
+      }
+    );
+
+    // Pastikan respons mengandung token
+    if (response.data && response.data.token) {
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      router.push("/admin");
+    } else {
+      setError("Login failed. Please try again.");
+    }
+  } catch (err) {
+    if (axios.isAxiosError(err) && err.response) {
+      setError(err.response.data.message || "An error occurred. Please try again.");
+    } else {
+      setError("An error occurred. Please try again.");
+    }
+  }
+};
+
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to purple-600">
+    <div className="relative flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600">
       <div className="relative w-full max-w-md bg-gray-100 rounded-lg shadow-lg p-8 space-y-6">
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full flex items-center justify-center shadow-lg">
           <Image
@@ -64,6 +76,7 @@ const LoginPage = () => {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             />
           </div>
 
@@ -78,6 +91,7 @@ const LoginPage = () => {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
             />
           </div>
 
