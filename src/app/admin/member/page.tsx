@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/admin/Menu";
 import axios from "axios";
 
-const AdminAnggotaPage = () => {
+const AdminMemberPage = () => {
   const [anggota, setAnggota] = useState([]);
   const [formData, setFormData] = useState({
     no: "",
@@ -36,7 +36,7 @@ const AdminAnggotaPage = () => {
     }
 
     try {
-      const response = await axios.get("http://localhost:8000/api/sbu-konstruksi", {
+      const response = await axios.get("http://localhost:8000/api/sbu-non-konstruksi", {
         headers: {
           Authorization: `Bearer ${token}`, // Gunakan token dari localStorage
         },
@@ -61,8 +61,8 @@ const AdminAnggotaPage = () => {
     const token = localStorage.getItem("token"); // Pastikan token ada di setiap request
 
     const url = editId
-      ? `http://localhost:8000/api/sbu-konstruksi/${editId}`
-      : "http://localhost:8000/api/sbu-konstruksi";
+      ? `http://localhost:8000/api/sbu-non-konstruksi/${editId}`
+      : "http://localhost:8000/api/sbu-non-konstruksi";
     const method = editId ? "put" : "post";
 
     try {
@@ -106,7 +106,7 @@ const AdminAnggotaPage = () => {
     const token = localStorage.getItem("token"); // Pastikan token ada di setiap request
     if (confirm("Are you sure you want to delete this data?")) {
       try {
-        await axios.delete(`http://localhost:8000/api/sbu-konstruksi/${id}`, {
+        await axios.delete(`http://localhost:8000/api/sbu-non-konstruksi/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`, // Gunakan token dari localStorage
           },
@@ -164,7 +164,7 @@ const AdminAnggotaPage = () => {
       <Sidebar onLogout={handleLogout} />
       <div className="flex-grow bg-gray-100 p-6">
         <div className="container mx-auto">
-          <h1 className="text-3xl font-bold mb-6">CRUD Anggota Konstruksi</h1>
+          <h1 className="text-3xl font-bold mb-6">CRUD Anggota Non-Konstruksi</h1>
 
           {error && <p className="text-red-500">{error}</p>}
 
@@ -297,4 +297,4 @@ const AdminAnggotaPage = () => {
   );
 };
 
-export default AdminAnggotaPage;
+export default AdminMemberPage;

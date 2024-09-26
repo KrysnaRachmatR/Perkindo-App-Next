@@ -17,7 +17,8 @@ const Sidebar = ({ onLogout }) => {
     { title: "Berita", href: "/admin/list/berita", icon: "/images/berita.png" },
     { title: "Galeri", href: "/admin/list/galeri", icon: "/images/galeri.png" },
     { title: "Agenda", href: "/admin/list/agenda", icon: "/images/agenda.png" },
-    { title: "Anggota", href: "/admin/anggota", icon: "/images/agenda.png" },
+    { title: "Sbu-Konstruksi", href: "/admin/anggota", icon: "/images/management.png" },
+    { title: "Sbu-Non-Konstruksi", href: "/admin/member", icon: "/images/management.png" },
   ];
 
   return (
