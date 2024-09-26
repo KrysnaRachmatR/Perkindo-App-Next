@@ -37,6 +37,7 @@ const Navbar = () => {
   const isContactPage = pathname === "/contact";
   const isLayananPage = pathname === "/layanan";
   const isAgendaPage = pathname === "/agenda";
+  const isBeritaPage = pathname === "/news";
 
   return (
     <nav
@@ -44,7 +45,7 @@ const Navbar = () => {
         scroll ? styles.navbarColored : styles.navbarTransparent
       }`}
       style={
-        isContactPage || isLayananPage || isAgendaPage
+        isContactPage || isLayananPage || isAgendaPage || isBeritaPage
           ? { backgroundColor: "#161D6F" }
           : {}
       }
