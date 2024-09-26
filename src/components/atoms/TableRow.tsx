@@ -2,13 +2,16 @@ import React from "react";
 
 type TableRowProps = {
   data: string[];
+  index: number;
 };
 
-const TableRow: React.FC<TableRowProps> = ({ data }) => {
+const TableRow: React.FC<TableRowProps> = ({ data, index }) => {
+  const rowClass = index % 2 === 0 ? "bg-white" : "bg-gray-100";
+
   return (
-    <tr className="bg-green-200 text-black">
+    <tr className={`${rowClass}`}>
       {data.map((item, index) => (
-        <td key={index} className="p-2 border border-blue-500 text-center">
+        <td key={index} className="p-2 border-t border-gray-200 text-center">
           {item}
         </td>
       ))}

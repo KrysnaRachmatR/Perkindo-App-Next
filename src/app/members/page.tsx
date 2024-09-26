@@ -1,12 +1,12 @@
 import Footer from "@/components/organisms/footer";
 import Navbar from "@/components/organisms/navbar";
-import MainTemplateAnggota from "@/components/templates/AnggotaTemplate";
+import SbuKonstruksiTable from "@/components/templates/AnggotaTemplate";
 
 const HomePage = () => {
   return (
     <div>
       <Navbar />
-      <MainTemplateAnggota />
+      <SbuKonstruksiTable />
 
       <Footer />
     </div>

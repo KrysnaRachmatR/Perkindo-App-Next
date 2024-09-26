@@ -9,7 +9,7 @@ const TableBody: React.FC<TableBodyProps> = ({ rows }) => {
   return (
     <tbody>
       {rows.map((row, index) => (
-        <TableRow key={index} data={row} />
+        <TableRow key={index} data={row} index={index} />
       ))}
     </tbody>
   );
