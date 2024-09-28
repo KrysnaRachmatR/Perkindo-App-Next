@@ -1,11 +1,7 @@
-import React from "react";
-
-interface CardProps {
-  children: React.ReactNode;
+export default function Card({ children, className = "" }) {
+  return (
+    <div className={`bg-white p-4 rounded-lg shadow-md ${className}`}>
+      {children}
+    </div>
+  );
 }
-
-const Card: React.FC<CardProps> = ({ children }) => {
-  return <div className="bg-white p-4 shadow-md rounded-lg">{children}</div>;
-};
-
-export default Card;

@@ -1,40 +1,41 @@
-// pages/index.js
-import CalendarWithFilter from "@/components/organisms/CalendarWithFilter";
+"use client";
+import { useState } from "react";
+import DashboardLayout from "../organisms/DashboardLayoutAgenda";
 
-const MainTemplateAgenda = () => {
-  const months = ["Januari", "Februari", "Maret"];
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+export default function HomePage() {
+  const [agendas, setAgendas] = useState([
+    { title: "Dinner with John & Daniel", time: "4:30", date: "2024-10-05" },
+    { title: "Coffee Meeting with Lisa", time: "6:00", date: "2024-10-05" },
+    { title: "Gym", time: "7:30", date: "2024-10-06" },
+  ]);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  // Data event per bulan
-  const eventsByMonth = {
-    Januari: [
-      { date: 8, time: "12:00", title: "Breakfast" },
-      { date: 11, time: "10:00", title: "Meeting" },
-      { date: 21, time: "14:00", title: "Conference" },
-    ],
-    Februari: [
-      { date: 5, time: "09:00", title: "Workshop" },
-      { date: 18, time: "13:00", title: "Lunch with team" },
-    ],
-    Maret: [
-      { date: 2, time: "11:00", title: "Project Kickoff" },
-      { date: 15, time: "16:00", title: "Wrap-up Meeting" },
-    ],
+  const handleRemoveAgenda = (index) => {
+    setAgendas(agendas.filter((_, i) => i !== index));
+  };
+
+  const onPrevMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1)
+    );
+  };
+
+  const onNextMonth = () => {
+    setCurrentMonth(
+      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
+    );
   };
 
   return (
-    <div className="p-10 bg-[#161D6F] min-h-screen">
-      <h1 className="text-4xl text-center item-center text-white font-bold mb-16 mt-8">
-        AGENDA
-      </h1>
-
-      <CalendarWithFilter
-        months={months}
-        days={days}
-        eventsByMonth={eventsByMonth}
-      />
-    </div>
+    <DashboardLayout
+      agendas={agendas}
+      onRemoveAgenda={handleRemoveAgenda}
+      selectedDate={selectedDate}
+      setSelectedDate={setSelectedDate}
+      currentMonth={currentMonth}
+      onPrevMonth={onPrevMonth}
+      onNextMonth={onNextMonth}
+    />
   );
-};
-
-export default MainTemplateAgenda;
+}
