@@ -48,8 +48,13 @@ const Footer: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link href="/berita" className="hover:text-gray-400">
+              <Link href="/news" className="hover:text-gray-400">
                 Berita
+              </Link>
+            </li>
+            <li>
+              <Link href="/agenda" className="hover:text-gray-400">
+                Agenda
               </Link>
             </li>
             <li>
@@ -58,12 +63,12 @@ const Footer: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link href="/anggota" className="hover:text-gray-400">
+              <Link href="/members" className="hover:text-gray-400">
                 Anggota
               </Link>
             </li>
             <li>
-              <Link href="/kontak" className="hover:text-gray-400">
+              <Link href="/contact" className="hover:text-gray-400">
                 Kontak
               </Link>
             </li>
