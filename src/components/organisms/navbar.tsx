@@ -2,19 +2,22 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import styles from "@/components/organisms/navbar.module.css";
 
 const Navbar = () => {
   const [scroll, setScroll] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [fade, setFade] = useState(false);
+  const [hideTimeout, setHideTimeout] = useState(null);
   const pathname = usePathname();
   const dropdownRef = useRef(null);
 
-  // Fungsi untuk mendeteksi klik di luar dropdown
   const handleClickOutside = (event) => {
     if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-      setIsDropdownOpen(false);
+      setFade(false);
+      setTimeout(() => {
+        setIsDropdownOpen(false);
+      }, 100);
     }
   };
 
@@ -33,7 +36,6 @@ const Navbar = () => {
     const handleScroll = () => {
       setScroll(window.scrollY > 50);
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => {
       window.removeEventListener("scroll", handleScroll);
@@ -44,21 +46,51 @@ const Navbar = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const getLinkClassName = (path: string) =>
+  const getLinkClassName = (path) =>
     `text-white hover:bg-white hover:text-black rounded-lg px-3 py-2 ${
       pathname === path ? "border-b-2 border-yellow-500" : ""
     }`;
+
+  const toggleDropdown = () => {
+    setFade(!isDropdownOpen);
+    setIsDropdownOpen((prev) => !prev);
+  };
 
   const isContactPage = pathname === "/contact";
   const isLayananPage = pathname === "/layanan";
   const isAgendaPage = pathname === "/agenda";
   const isBeritaPage = pathname === "/news";
 
+  const handleMouseEnter = () => {
+    setFade(true);
+    setIsDropdownOpen(true);
+    if (hideTimeout) {
+      clearTimeout(hideTimeout);
+      setHideTimeout(null);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setFade(false);
+    const timeout = setTimeout(() => {
+      setIsDropdownOpen(false);
+    }, 100);
+    setHideTimeout(timeout);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hideTimeout) {
+        clearTimeout(hideTimeout);
+      }
+    };
+  }, [hideTimeout]);
+
   return (
     <nav
-      className={`${styles.navbar} ${
-        scroll ? styles.navbarColored : styles.navbarTransparent
-      }`}
+      className={`${
+        scroll ? "bg-blue-900 shadow-md" : "bg-transparent"
+      } fixed w-full z-20 top-0 left-0 transition-colors duration-300`}
       style={
         isContactPage || isLayananPage || isAgendaPage || isBeritaPage
           ? { backgroundColor: "#161D6F" }
@@ -69,20 +101,23 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <a href="/" className="flex items-center">
-              <img src="/images/logo.png" alt="logo" className="h-14 w-14" />
-              <div className="flex flex-col items-center ml-4">
-                <div className="flex items-center">
-                  <span className="text-white font-bold text-2xl tracking-[0.3rem]">
-                    PERKINDO
-                  </span>
-                </div>
-
-                <p className="text-white text-[0.7rem] text-center">
+              <img
+                src="/images/logo.png"
+                alt="logo"
+                className="h-10 w-10 md:h-14 md:w-14 ml-4"
+              />
+              <div className="flex flex-col items-center ml-2 md:ml-4">
+                <span className="text-white font-bold text-lg md:text-2xl tracking-[0.3rem]">
+                  PERKINDO
+                </span>
+                <p className="text-white text-[0.6rem] md:text-[0.7rem] text-center">
                   Persatuan Konsultan Indonesia
                 </p>
               </div>
             </a>
           </div>
+
+          {/* Menu Desktop */}
           <div className="hidden md:flex items-center space-x-2">
             <a href="/" className={getLinkClassName("/")}>
               Beranda
@@ -93,45 +128,71 @@ const Navbar = () => {
             <a href="/galeri" className={getLinkClassName("/galeri")}>
               Galeri
             </a>
-            {/* Berita Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                className="text-white flex hover:bg-white hover:text-black rounded-lg px-3 py-2 items-center"
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              >
+
+            {/* Dropdown Berita */}
+            <div
+              className="relative"
+              ref={dropdownRef}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+            >
+              <button className="text-white flex hover:bg-white hover:text-black rounded-lg px-3 py-2 items-center">
                 <span>Berita</span>
-                <span className="ml-2 text-xs">&#9660;</span>
+                <span className="ml-2 text-xs">
+                  {isDropdownOpen ? (
+                    <img
+                      src="./images/chevron-up.svg"
+                      alt="Up Arrow"
+                      className="h-4 w-4 filter invert"
+                    />
+                  ) : (
+                    <img
+                      src="./images/chevron-down (1).svg"
+                      alt="Down Arrow"
+                      className="h-4 w-4 filter invert"
+                    />
+                  )}
+                </span>
               </button>
               {isDropdownOpen && (
                 <div
-                  className={`absolute left-0 w-48 bg-white rounded-b-md shadow-lg mt-[0.8rem]  transform ${
-                    isDropdownOpen
-                      ? "opacity-100 translate-y-0"
-                      : "opacity-0 -translate-y-4"
+                  className={`absolute left-0 w-64 bg-white rounded-md shadow-lg z-50 transition-opacity duration-200 ease-in-out ${
+                    fade ? "opacity-100" : "opacity-0"
                   }`}
-                  style={{ transition: "all 1.5s ease-out" }}
+                  style={{ top: "calc(100% + 22px)" }}
                 >
-                  <a
-                    href="/news"
-                    className="block px-4 py-2 text-black hover:text-[#161D6F] hover:font-bold"
-                  >
-                    Berita
-                  </a>
-                  <a
-                    href="/agenda"
-                    className="block px-4 py-2 text-black hover:text-[#161D6F] hover:font-bold rounded-b-lg"
-                  >
-                    Agenda
-                  </a>
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "-10px",
+                      left: "10px",
+                      width: "0",
+                      height: "0",
+                      borderLeft: "10px solid transparent",
+                      borderRight: "10px solid transparent",
+                      borderBottom: "10px solid white",
+                    }}
+                  />
+                  <div className="grid grid-cols-1 gap-2 p-4">
+                    <a
+                      href="/news"
+                      className="block hover:text-[#161D6F] hover:font-bold"
+                    >
+                      Berita
+                    </a>
+                    <a
+                      href="/agenda"
+                      className="block hover:text-[#161D6F] hover:font-bold"
+                    >
+                      Agenda
+                    </a>
+                  </div>
                 </div>
               )}
             </div>
 
             <a href="/layanan" className={getLinkClassName("/layanan")}>
               Layanan
-            </a>
-            <a href="/members" className={getLinkClassName("/members")}>
-              Anggota
             </a>
             <a href="/contact" className={getLinkClassName("/contact")}>
               Kontak
@@ -140,10 +201,12 @@ const Navbar = () => {
               Login
             </button>
           </div>
-          <div className="md:hidden flex items-center">
+
+          {/* Menu Mobile */}
+          <div className="md:hidden">
             <button
-              className="inline-flex items-center justify-center p-2 rounded-md text-white hover:text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
               onClick={toggleMenu}
+              className="text-white focus:outline-none mr-6 mt-1"
             >
               {isMenuOpen ? (
                 <svg
@@ -179,85 +242,100 @@ const Navbar = () => {
             </button>
           </div>
         </div>
+      </div>
 
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className={`px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[#161D6F]`}>
-              <a
-                href="/"
-                className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+      {/* Menu Mobile Dropdown */}
+      {isMenuOpen && (
+        <div className="md:hidden">
+          <div className={`px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-[#161D6F]`}>
+            <a
+              href="/"
+              className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+            >
+              Beranda
+            </a>
+            <a
+              href="/profile"
+              className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+            >
+              Profil
+            </a>
+            <a
+              href="/galeri"
+              className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+            >
+              Galeri
+            </a>
+            {/* Dropdown Berita di Mobile */}
+            <div className="relative">
+              <button
+                onClick={toggleDropdown}
+                className="text-white flex hover:bg-white hover:text-black rounded-lg px-3 py-2 items-center "
               >
-                Beranda
-              </a>
-              <a
-                href="/profile"
-                className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
-              >
-                Profil
-              </a>
-              <a
-                href="/galeri"
-                className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
-              >
-                Galeri
-              </a>
-              {/* Dropdown Berita di Mobile */}
-              <div
-                className="relative"
-                onMouseEnter={() => setIsDropdownOpen(true)}
-                onMouseLeave={() => setIsDropdownOpen(false)}
-              >
-                <button className="text-white flex hover:bg-white hover:text-black rounded-lg px-3 py-2 items-center">
-                  <span>Berita</span>
-                  <span className="ml-2 text-xs">&#9660;</span>
-                </button>
-
-                {isDropdownOpen && (
-                  <div className="absolute left-0 w-48 bg-white rounded-md z-20">
+                <span>Berita</span>
+                <span className="ml-2 text-xs">
+                  {isDropdownOpen ? (
+                    <img
+                      src="./images/chevron-up.svg"
+                      alt="Up Arrow"
+                      className="h-4 w-4 filter invert"
+                    />
+                  ) : (
+                    <img
+                      src="./images/chevron-down (1).svg"
+                      alt="Down Arrow"
+                      className="h-4 w-4 filter invert"
+                    />
+                  )}
+                </span>
+              </button>
+              {isDropdownOpen && (
+                <div
+                  className={`mt-1 w-64 bg-white rounded-md z-20 transition-opacity duration-200 ease-in-out ${
+                    fade ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <div className="grid grid-cols-1 gap-2 p-4">
                     <a
                       href="/news"
-                      className="block pl-5 text-black hover:bg-[#161D6F] hover:text-white px-3 py-2 rounded-t-md"
+                      className="block hover:text-[#161D6F] hover:font-bold"
                     >
                       Berita
                     </a>
                     <a
                       href="/agenda"
-                      className="block pl-5 text-black hover:bg-[#161D6F] hover:text-white px-3 py-2"
+                      className="block hover:text-[#161D6F] hover:font-bold"
                     >
                       Agenda
                     </a>
                   </div>
-                )}
-              </div>
-
-              {/* Konten di bawah dropdown */}
-              <div className={`mt-2 ${isDropdownOpen ? "mt-16" : "mt-2"}`}>
-                <a
-                  href="/layanan"
-                  className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
-                >
-                  Layanan
-                </a>
-                <a
-                  href="/members"
-                  className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
-                >
-                  Anggota
-                </a>
-                <a
-                  href="/contact"
-                  className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
-                >
-                  Kontak
-                </a>
-                <button className="bg-yellow-500 text-[#161D6F] block px-4 py-2 rounded">
-                  Login
-                </button>
-              </div>
+                </div>
+              )}
             </div>
+            <a
+              href="/layanan"
+              className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+            >
+              Layanan
+            </a>
+            <a
+              href="/members"
+              className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+            >
+              Anggota
+            </a>
+            <a
+              href="/contact"
+              className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
+            >
+              Kontak
+            </a>
+            <button className="bg-yellow-500 text-[#161D6F] px-4 py-2 rounded">
+              Login
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </nav>
   );
 };
