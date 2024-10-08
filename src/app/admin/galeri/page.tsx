@@ -18,22 +18,22 @@ const AdminGaleriPage = () => {
   const [error, setError] = useState(null);
   const router = useRouter();
 
-  // Fetch data galeri dari API
+  // Fetch gallery data from API
   useEffect(() => {
     fetchData();
   }, []);
 
   const fetchData = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // Dapatkan token dari localStorage
     if (!token) {
-      router.push("/login");
+      router.push("/login"); // Redirect ke halaman login jika token tidak ada
       return;
     }
 
     try {
       const response = await axios.get("http://localhost:8000/api/galeri", {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`, // Gunakan token dari localStorage
         },
       });
       setGaleri(response.data);
@@ -45,7 +45,6 @@ const AdminGaleriPage = () => {
     }
   };
 
-  // Handle input teks dan file
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "gambar") {
@@ -55,19 +54,16 @@ const AdminGaleriPage = () => {
     }
   };
 
-  // Handle submit (create/update)
   const handleSubmit = async (e) => {
   e.preventDefault();
   setIsSubmitting(true);
+  const token = localStorage.getItem("token"); // Pastikan token ada di setiap request
 
-  const token = localStorage.getItem("token");
   const data = new FormData();
-  
-  // Ambil data judul dan caption dari formData
   data.append("judul", formData.judul);
   data.append("caption", formData.caption);
 
-  // Hanya tambahkan gambar jika ada gambar baru yang dipilih
+  // Hanya tambahkan gambar jika ada gambar baru (saat update, gambar bisa kosong jika tidak diubah)
   if (formData.gambar) {
     data.append("gambar", formData.gambar);
   }
@@ -83,7 +79,7 @@ const AdminGaleriPage = () => {
       url,
       data,
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${token}`, // Gunakan token dari localStorage
         "Content-Type": "multipart/form-data",
       },
     });
@@ -101,28 +97,25 @@ const AdminGaleriPage = () => {
 };
 
 
-  // Handle edit form
   const handleEdit = (id) => {
-  const galeriToEdit = galeri.find((item) => item.id === id);
-  if (galeriToEdit) {
-    setFormData({
-      judul: galeriToEdit.judul,
-      caption: galeriToEdit.caption,
-      gambar: null, // Ini untuk menjaga agar gambar tetap ada di server
-    });
-    setEditId(id);
-  }
-};
+    const galeriToEdit = galeri.find((item) => item.id === id);
+    if (galeriToEdit) {
+      setFormData({
+        judul: galeriToEdit.judul,
+        caption: galeriToEdit.caption,
+        gambar: null,
+      });
+      setEditId(id);
+    }
+  };
 
-
-  // Handle delete
   const handleDelete = async (id) => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token"); // Pastikan token ada di setiap request
     if (confirm("Are you sure you want to delete this data?")) {
       try {
         await axios.delete(`http://localhost:8000/api/galeri/${id}`, {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Gunakan token dari localStorage
           },
         });
         alert("Data deleted successfully");
@@ -134,7 +127,6 @@ const AdminGaleriPage = () => {
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       judul: "",
@@ -146,7 +138,6 @@ const AdminGaleriPage = () => {
 
   const handleLogout = async () => {
     try {
-      // Call the backend to log out
       const token = localStorage.getItem("token");
       await axios.post(
         "http://localhost:8000/api/logout",
@@ -157,97 +148,99 @@ const AdminGaleriPage = () => {
           },
         }
       );
-
-      // Remove token and user from localStorage
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-
       router.push("/login");
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
 
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
   return (
-    <div className="admin-page">
-      <Sidebar />
-      <div className="main-content p-4">
-        <h1 className="text-2xl font-bold mb-4">Manage Galeri</h1>
+    <div className="flex">
+      <Sidebar onLogout={handleLogout} />
+      <div className="flex-grow bg-gray-100 p-6">
+        <div className="container mx-auto">
+          <h1 className="text-3xl font-bold mb-6">CRUD Galeri</h1>
 
-        <form onSubmit={handleSubmit} className="mb-4 p-4 bg-white shadow rounded">
-          <input
-            type="text"
-            name="judul"
-            placeholder="Judul"
-            value={formData.judul}
-            onChange={handleChange}
-            required
-            className="border border-gray-300 rounded p-2 w-full mb-2"
-          />
-          <textarea
-            name="caption"
-            placeholder="Caption"
-            value={formData.caption}
-            onChange={handleChange}
-            required
-            className="border border-gray-300 rounded p-2 w-full mb-2"
-          />
-          <input
-            type="file"
-            name="gambar"
-            onChange={handleChange}
-            className="mb-2"
-          />
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="bg-blue-500 text-white p-2 rounded"
-          >
-            {editId ? "Update" : "Create"}
-          </button>
-        </form>
+          {error && <p className="text-red-500">{error}</p>}
 
-        <div className="galeri-list">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Judul</th>
-                <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Caption</th>
-                <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gambar</th>
-                <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {galeri.map((item) => (
-                <tr key={item.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.judul}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{item.caption}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    {item.gambar && (
-                      <img
-                        src={`http://localhost:8000/storage/${item.gambar}`}
-                        alt={item.judul}
-                        width={100}
-                      />
-                    )}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button onClick={() => handleEdit(item.id)} className="text-blue-500">Edit</button>
-                    <button onClick={() => handleDelete(item.id)} className="text-red-500 ml-2">Delete</button>
-                  </td>
+          <form onSubmit={handleSubmit} className="mb-6 bg-white p-4 rounded shadow-md">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium">Judul</label>
+                <input
+                  type="text"
+                  name="judul"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  value={formData.judul}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Caption</label>
+                <textarea
+                  name="caption"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  value={formData.caption}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium">Gambar</label>
+                <input
+                  type="file"
+                  name="gambar"
+                  className="w-full p-2 border border-gray-300 rounded"
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+            <button type="submit" className="mt-4 p-2 bg-blue-500 text-white rounded">
+              {isSubmitting ? "Processing..." : editId ? "Update" : "Create"}
+            </button>
+            <button type="button" className="mt-4 ml-2 p-2 bg-gray-300 rounded" onClick={resetForm}>
+              Cancel
+            </button>
+          </form>
+
+          {loading ? (
+            <p>Loading...</p>
+          ) : (
+            <table className="min-w-full bg-white">
+              <thead>
+                <tr>
+                  <th className="border px-4 py-2">Judul</th>
+                  <th className="border px-4 py-2">Caption</th>
+                  <th className="border px-4 py-2">Gambar</th>
+                  <th className="border px-4 py-2">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {galeri.map((item) => (
+                  <tr key={item.id}>
+                    <td className="border px-4 py-2">{item.judul}</td>
+                    <td className="border px-4 py-2">{item.caption}</td>
+                    <td className="border px-4 py-2">
+                      {item.gambar && (
+                        <img
+                          src={`http://localhost:8000/storage/${item.gambar}`}
+                          alt={item.judul}
+                          width={100}
+                        />
+                      )}
+                    </td>
+                    <td className="border px-4 py-2">
+                      <button onClick={() => handleEdit(item.id)} className="bg-yellow-500 text-white px-2 py-1 rounded">Edit</button>
+                      <button onClick={() => handleDelete(item.id)} className="bg-red-500 text-white px-2 py-1 rounded">Delete</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
