@@ -2,15 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Sidebar from "@/components/admin/Menu";
-import Navbar from "@/components/admin/Navbar";
 import axios from "axios";
-
+import Sidebar from "@/components/admin/Menu"; 
+import Navbar from "@/components/admin/Navbar"; 
 
 const AdminPage = () => {
   const [user, setUser] = useState(null);
-  const [KonstruksiCount, setSbuKonstruksiCount] = useState(0);
-  const [NonKonstruksiCount, setSbuNonKonstruksiCount] = useState(0);
+  const [konstruksiCount, setKonstruksiCount] = useState(0);
+  const [nonKonstruksiCount, setNonKonstruksiCount] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
   // Fetch user data from backend
@@ -18,7 +18,7 @@ const AdminPage = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/login"); // Redirect to login if token is not found
+        router.push("/login"); // Redirect ke halaman login jika token tidak ada
         return;
       }
 
@@ -38,14 +38,14 @@ const AdminPage = () => {
   const fetchCounts = async () => {
     try {
       const token = localStorage.getItem("token");
-      
+
       // Fetch SBU-Konstruksi count
       const konstruksiResponse = await axios.get("http://localhost:8000/api/sbu-konstruksi/count", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setSbuKonstruksiCount(konstruksiResponse.data.count);
+      setKonstruksiCount(konstruksiResponse.data.count);
 
       // Fetch SBU-Non-Konstruksi count
       const nonKonstruksiResponse = await axios.get("http://localhost:8000/api/sbu-non-konstruksi/count", {
@@ -53,12 +53,13 @@ const AdminPage = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      setSbuNonKonstruksiCount(nonKonstruksiResponse.data.count);
+      setNonKonstruksiCount(nonKonstruksiResponse.data.count);
     } catch (error) {
       console.error("Error fetching counts:", error);
     }
   };
 
+  // UseEffect untuk fetching data saat halaman dimuat
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
@@ -66,9 +67,10 @@ const AdminPage = () => {
     } else {
       fetchUserData();
     }
-    fetchCounts(); // Fetch counts for SBU data
+    fetchCounts();
   }, [router]);
 
+  // Logika logout
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -84,32 +86,35 @@ const AdminPage = () => {
 
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-
       router.push("/login");
     } catch (error) {
       console.error("Error during logout:", error);
     }
   };
 
+  // Jika user belum terautentikasi, return null
   if (!user) return null;
 
   return (
     <div className="flex min-h-screen">
+      {/* Sidebar */}
       <Sidebar onLogout={handleLogout} />
+
       <div className="flex-grow bg-gray-100">
-        <Navbar user={user} />
+        {/* Navbar */}
+        <Navbar user={user} onLogout={handleLogout} />
         <div className="p-6">
           <h1 className="text-3xl font-bold mb-4">Welcome, {user.name}</h1>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Card 1: SBU-Konstruksi */}
-            <div className="bg-white shadow-md rounded p-6 text-center">
-              <h2 className="text-4xl font-bold mb-2">{KonstruksiCount}</h2>
+            <div className="bg-white shadow-md rounded-lg p-6 text-center transition-transform transform hover:scale-105">
+              <h2 className="text-4xl font-bold mb-2">{konstruksiCount}</h2>
               <p className="text-gray-600">SBU-Konstruksi</p>
             </div>
 
             {/* Card 2: SBU-Non-Konstruksi */}
-            <div className="bg-white shadow-md rounded p-6 text-center">
-              <h1 className="text-4xl font-bold mb-2">{NonKonstruksiCount}</h1>
+            <div className="bg-white shadow-md rounded-lg p-6 text-center transition-transform transform hover:scale-105">
+              <h2 className="text-4xl font-bold mb-2">{nonKonstruksiCount}</h2>
               <p className="text-gray-600">SBU-Non-Konstruksi</p>
             </div>
           </div>
