@@ -27,6 +27,34 @@ export default function Home() {
     return () => clearInterval(interval); // Hapus interval saat komponen di-unmount
   }, []);
 
+  const dataGaleri = [
+    {
+      imageSrc: "/images/konstruksi3.jpg",
+      title: "Judul Kartu 1",
+      caption: "Keterangan Kartu 1",
+    },
+    {
+      imageSrc: "/images/konstruksi3.jpg",
+      title: "Judul Kartu 2",
+      caption: "Keterangan Kartu 2",
+    },
+    {
+      imageSrc: "/images/konstruksi3.jpg",
+      title: "Judul Kartu 3",
+      caption: "Keterangan Kartu 3",
+    },
+    {
+      imageSrc: "/images/konstruksi3.jpg",
+      title: "Judul Kartu 4",
+      caption: "Keterangan Kartu 4",
+    },
+    {
+      imageSrc: "/images/konstruksi3.jpg",
+      title: "Judul Kartu 5",
+      caption: "Keterangan Kartu 5",
+    },
+  ];
+
   return (
     <>
       <Navbar />
@@ -113,23 +141,8 @@ export default function Home() {
 
       {/* Menu Galeri */}
       <div className="flex flex-wrap justify-center gap-8 p-8">
-      <Card
-        imageSrc="/images/konstruksi3.jpg"
-        title="Card Title 1"
-        caption="Card Caption 1"
-      />
-      <Card
-        imageSrc="/images/konstruksi3.jpg"
-        title="Card Title 2"
-        caption="Card Caption 2"
-      />
-      <Card
-        imageSrc="/images/konstruksi3.jpg"
-        title="Card Title 2"
-        caption="Card Caption 2"
-      />
-
-    </div>
+        <Card cards={dataGaleri} />
+      </div>
 
       <div>
         <ContentSection />
