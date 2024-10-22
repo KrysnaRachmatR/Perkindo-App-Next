@@ -15,6 +15,8 @@ type CardProps = {
 
 const Card: React.FC<CardProps> = ({ cards }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalContent, setModalContent] = useState<CardData | null>(null);
 
   const handleNext = () => {
     if (currentIndex < cards.length - 1) {
@@ -26,6 +28,16 @@ const Card: React.FC<CardProps> = ({ cards }) => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
     }
+  };
+
+  const handleOpenModal = (content: CardData) => {
+    setModalContent(content);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setModalContent(null);
   };
 
   const visibleCardsCount = 3;
@@ -43,20 +55,24 @@ const Card: React.FC<CardProps> = ({ cards }) => {
 
       <div className="overflow-hidden w-full max-w-[1100px]">
         <div
-          className="flex transition-transform duration-300 gap-4"
+          className="flex transition-transform duration-300"
           style={{
-            transform: `translateX(-${(currentIndex * 100) / visibleCardsCount}%)`,
+            transform: `translateX(-${
+              (currentIndex * 100) / visibleCardsCount
+            }%)`,
             transition: "transform 0.5s ease-in-out",
             willChange: "transform",
+            gap: "15px",
           }}
         >
           {cards.map((card, index) => (
             <div
               key={index}
-              className={`flex-shrink-0 w-[calc(100%/${visibleCardsCount})] transition-transform duration-300 relative`}
+              className={`flex-shrink-0 w-[calc(100%/${visibleCardsCount})] transition-transform duration-300`}
+              style={{ margin: 0 }}
             >
               <div
-                className={`bg-[#161D6F] rounded-[15px] shadow-lg overflow-hidden w-full h-auto text-white relative ${
+                className={`bg-[#161D6F] rounded-[15px] shadow-lg overflow-hidden w-[350px] h-auto text-white relative ${
                   index === currentIndex
                     ? "scale-105 opacity-100"
                     : "scale-90 opacity-50"
@@ -78,7 +94,10 @@ const Card: React.FC<CardProps> = ({ cards }) => {
                     {card.caption}
                   </p>
                   <div className="flex justify-center mt-4">
-                    <button className="bg-white text-[#161D6F] px-4 py-1 rounded-[20px] text-sm sm:text-base">
+                    <button
+                      className="bg-white text-[#161D6F] px-4 py-1 rounded-[20px] text-sm sm:text-base"
+                      onClick={() => handleOpenModal(card)}
+                    >
                       Selengkapnya
                     </button>
                   </div>
@@ -96,6 +115,35 @@ const Card: React.FC<CardProps> = ({ cards }) => {
         >
           Next
         </button>
+      )}
+
+      {isModalOpen && modalContent && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+          <div className="relative bg-white p-6 rounded-lg shadow-lg max-w-[1000px] w-full dark:bg-boxdark">
+            <button
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 dark:text-white"
+              onClick={handleCloseModal}
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold mb-4 dark:text-white">
+              Detail Galeri
+            </h2>
+            <div className="flex  gap-4">
+              <div className="relative w-[85%] h-[500px]">
+                <Image
+                  src={modalContent.imageSrc}
+                  alt={modalContent.title}
+                  fill
+                  className="object-cover rounded-2xl"
+                />
+              </div>
+              <p className="w-1/2 text-gray-600 dark:text-gray-300">
+                {modalContent.caption}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

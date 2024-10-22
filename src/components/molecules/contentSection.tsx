@@ -14,7 +14,7 @@ const ContentSection: React.FC = () => {
             src="/images/konstruksi3.jpg"
             alt="Gambar Utama"
             fill
-            className="rounded-lg"
+            className="rounded-lg object-cover"
           />
         </div>
         <p className="text-gray-200">DPD Perkindo Kalimantan Barat melakukan audiensi bersama Bidang Jasa Konstruksi Dinas Pekerjaan Umum dan Penataan Ruang Provinsi Kalimantan Barat.</p>

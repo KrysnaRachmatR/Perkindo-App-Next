@@ -8,7 +8,7 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-const isDarkMode = document.documentElement.classList.contains("dark");
+// const isDarkMode = document.documentElement.classList.contains("dark");
 
 const options: ApexOptions = {
   legend: {
