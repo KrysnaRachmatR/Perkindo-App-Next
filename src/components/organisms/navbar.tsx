@@ -143,7 +143,7 @@ const Navbar = () => {
                     <img
                       src="./images/chevron-up.svg"
                       alt="Up Arrow"
-                      className="h-4 w-4 filter invert"
+                      className="h-4 w-4"
                     />
                   ) : (
                     <img
@@ -173,16 +173,16 @@ const Navbar = () => {
                       borderBottom: "10px solid white",
                     }}
                   />
-                  <div className="grid grid-cols-1 gap-2 p-4">
+                  <div className="grid grid-cols-1 gap-2 p-4 bg-white -mt-[0.1px]">
                     <a
                       href="/news"
-                      className="block hover:text-[#161D6F] hover:font-bold"
+                      className="block text-[#6f6e6e] hover:text-[#161D6F] hover:font-bold"
                     >
                       Berita
                     </a>
                     <a
                       href="/agenda"
-                      className="block hover:text-[#161D6F] hover:font-bold"
+                      className="block text-[#6f6e6e] hover:text-[#161D6F] hover:font-bold"
                     >
                       Agenda
                     </a>
@@ -193,6 +193,9 @@ const Navbar = () => {
 
             <a href="/layanan" className={getLinkClassName("/layanan")}>
               Layanan
+            </a>
+            <a href="/anggota" className={getLinkClassName("/anggota")}>
+              Anggota
             </a>
             <a href="/contact" className={getLinkClassName("/contact")}>
               Kontak
