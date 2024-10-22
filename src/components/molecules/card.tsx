@@ -17,12 +17,18 @@ const Card: React.FC<CardProps> = ({ cards }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const handleNext = () => {
-    setCurrentIndex((currentIndex + 1) % cards.length);
+    if (currentIndex < cards.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    }
   };
 
   const handlePrev = () => {
-    setCurrentIndex((currentIndex - 1 + cards.length) % cards.length);
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
   };
+
+  const visibleCardsCount = 3;
 
   return (
     <div className="relative flex items-center justify-center w-full">
@@ -35,24 +41,27 @@ const Card: React.FC<CardProps> = ({ cards }) => {
         </button>
       )}
 
-      <div className="overflow-hidden w-[1200px]">
+      <div className="overflow-hidden w-full max-w-[1100px]">
         <div
-          className="flex justify-center gap-8 w-full transition-transform duration-300"
+          className="flex transition-transform duration-300 gap-4"
           style={{
-            transform: `translateX(calc(-${currentIndex * 300}px + 250px))`,
+            transform: `translateX(-${(currentIndex * 100) / visibleCardsCount}%)`,
+            transition: "transform 0.5s ease-in-out",
+            willChange: "transform",
           }}
         >
           {cards.map((card, index) => (
             <div
               key={index}
-              className={`transition-transform duration-300 transform ${
-                index === currentIndex
-                  ? "scale-105 opacity-100"
-                  : "scale-90 opacity-50"
-              }`}
-              style={{ flex: "0 0 auto", width: "300px" }}
+              className={`flex-shrink-0 w-[calc(100%/${visibleCardsCount})] transition-transform duration-300 relative`}
             >
-              <div className="bg-[#161D6F] rounded-[15px] shadow-lg overflow-hidden w-full h-auto text-white relative transition-transform transform ">
+              <div
+                className={`bg-[#161D6F] rounded-[15px] shadow-lg overflow-hidden w-full h-auto text-white relative ${
+                  index === currentIndex
+                    ? "scale-105 opacity-100"
+                    : "scale-90 opacity-50"
+                }`}
+              >
                 <div className="relative w-full h-[180px]">
                   <Image
                     src={card.imageSrc}
@@ -63,10 +72,10 @@ const Card: React.FC<CardProps> = ({ cards }) => {
                 </div>
                 <div className="pt-[180px] pb-4 px-4">
                   <h2 className="text-base sm:text-lg font-bold mb-2">
-                    {card.title}{" "}
+                    {card.title}
                   </h2>
                   <p className="text-gray-200 mb-4 text-sm sm:text-base">
-                    {card.caption}{" "}
+                    {card.caption}
                   </p>
                   <div className="flex justify-center mt-4">
                     <button className="bg-white text-[#161D6F] px-4 py-1 rounded-[20px] text-sm sm:text-base">

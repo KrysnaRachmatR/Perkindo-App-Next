@@ -63,11 +63,11 @@ export default function Home() {
           backgroundImage: `url(${currentImage})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          height: "100vh", // Memastikan background menutupi seluruh layar
+          height: "100vh",
           width: "99,9vw",
-          position: "relative", // Agar bisa di-scroll bersama konten
+          position: "relative",
           opacity: 1,
-          transition: "background-image 2s ease-in-out", // Transisi halus saat gambar berganti
+          transition: "background-image 2s ease-in-out",
         }}
       >
         {/* Menu Header */}
