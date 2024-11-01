@@ -53,7 +53,7 @@ const Card: React.FC<CardProps> = ({ cards }) => {
         </button>
       )}
 
-      <div className="overflow-hidden w-full max-w-[1100px]">
+      <div className="overflow-hidden w-full max-w-[1100px] h-[600px]  p-4">
         <div
           className="flex transition-transform duration-300"
           style={{
@@ -72,21 +72,24 @@ const Card: React.FC<CardProps> = ({ cards }) => {
               style={{ margin: 0 }}
             >
               <div
-                className={`bg-[#161D6F] rounded-[15px] shadow-lg overflow-hidden w-[350px] h-auto text-white relative ${
+                className={`bg-[#161D6F] rounded-sm overflow-hidden w-[350px] h-auto text-white relative ${
                   index === currentIndex
                     ? "scale-105 opacity-100"
                     : "scale-90 opacity-50"
                 }`}
+                style={{
+                  boxShadow: "10px 10px rgba(0, 0, 0, 2)",
+                }}
               >
-                <div className="relative w-full h-[180px]">
+                <div className="relative w-full h-[400px]">
                   <Image
                     src={card.imageSrc}
                     alt={card.title}
                     fill
-                    className="object-cover rounded-t-[15px]"
+                    className="object-cover rounded-sm"
                   />
                 </div>
-                <div className="pt-[180px] pb-4 px-4">
+                <div className="pt-[20px] pb-4 px-4">
                   <h2 className="text-base sm:text-lg font-bold mb-2">
                     {card.title}
                   </h2>
@@ -95,7 +98,7 @@ const Card: React.FC<CardProps> = ({ cards }) => {
                   </p>
                   <div className="flex justify-center mt-4">
                     <button
-                      className="bg-white text-[#161D6F] px-4 py-1 rounded-[20px] text-sm sm:text-base"
+                      className="bg-white text-[#161D6F] px-4 py-1 rounded-md text-sm sm:text-base mb-3"
                       onClick={() => handleOpenModal(card)}
                     >
                       Selengkapnya
