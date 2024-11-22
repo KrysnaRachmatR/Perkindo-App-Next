@@ -1,17 +1,17 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import Image from "next/image";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
 const SignUpLayout = () => {
   const [signIn, toggle] = useState(true);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
-  // Cek apakah pengguna sudah login
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -22,27 +22,31 @@ const SignUpLayout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!username || !password) {
+      setError("Email dan password harus diisi.");
+      return;
+    }
+
     try {
       const response = await axios.post("http://localhost:8000/api/login", {
-        username,
+        email: username, // Menggunakan 'email' untuk dikirim ke server
         password,
       });
 
-      // Pastikan respons mengandung token
       if (response.data && response.data.token) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
         router.push("/admin");
       } else {
-        setError("Login failed. Please try again.");
+        setError("Login gagal. Silakan coba lagi.");
       }
     } catch (err) {
       if (axios.isAxiosError(err) && err.response) {
         setError(
-          err.response.data.message || "An error occurred. Please try again."
+          err.response.data.message || "Terjadi kesalahan. Silakan coba lagi."
         );
       } else {
-        setError("An error occurred. Please try again.");
+        setError("Terjadi kesalahan. Silakan coba lagi.");
       }
     }
   };
@@ -50,57 +54,16 @@ const SignUpLayout = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-200">
       <div className="bg-[#ffff] rounded-2xl relative overflow-hidden w-[700px] max-w-[100%] min-h-[500px] shadow-2xl">
-        {/* Sign Up Form */}
-        <div
-          className={`absolute top-0 h-full transition-all duration-700 ease-in-out w-1/2 ${
-            signIn ? "-left-0 opacity-0" : "left-[50%] opacity-100"
-          }`}
-        >
-          <form className="bg-white flex items-center justify-center flex-col px-12 h-full text-center">
-            <h1 className="font-bold m-0">Create Account</h1>
-            <input
-              type="text"
-              placeholder="Nama Perusahaan"
-              className="bg-[#eee] border-none py-2 px-3 my-2 w-full"
-            />
-            <input
-              type="text"
-              placeholder="Nama Direktur"
-              className="bg-[#eee] border-none py-2 px-3 my-2 w-full"
-            />
-            <input
-              type="text"
-              placeholder="Nama Penanggung Jawab"
-              className="bg-[#eee] border-none py-2 px-3 my-2 w-full"
-            />
-            <input
-              type="text"
-              placeholder="Alamat Perusahaan"
-              className="bg-[#eee] border-none py-2 px-3 my-2 w-full"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              className="bg-[#eee] border-none py-2 px-3 my-2 w-full"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              className="bg-[#eee] border-none py-2 px-3 my-2 w-full"
-            />
-            <button className="rounded-sm border border-[#081b57] bg-[#081b57] text-white text-xs font-bold py-3 px-12 tracking-wide uppercase transition-transform ease-in duration-300 active:scale-95 focus:outline-none">
-              Register
-            </button>
-          </form>
-        </div>
-
         {/* Sign In Form */}
         <div
           className={`absolute top-0 h-full transition-all duration-700 ease-in-out w-1/2 ${
             signIn ? "left-0 opacity-100" : "left-[7%] opacity-0"
           }`}
         >
-          <form className="bg-white flex items-center justify-center flex-col px-12 h-full text-center">
+          <form
+            onSubmit={handleSubmit}
+            className="bg-white flex items-center justify-center flex-col px-12 h-full text-center"
+          >
             <h1 className="font-bold m-0 tracking-widest">LOGIN</h1>
             <input
               id="email"
@@ -110,17 +73,28 @@ const SignUpLayout = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="bg-[#eee] border-none py-3 px-4 my-2 w-full"
             />
-            <input
-              id="password"
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="bg-[#eee] border-none py-3 px-4 my-2 w-full"
-            />
-            <button className="rounded-sm border border-[#081b57] bg-[#081b57] text-white text-xs font-bold py-3 px-12 tracking-wide uppercase transition-transform ease-in duration-300 active:scale-95 focus:outline-none">
+            <div className="relative w-full">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"} // Menentukan jenis input berdasarkan showPassword
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-[#eee] border-none py-3 px-4 my-2 w-full"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)} // Toggle untuk melihat/sembunyikan password
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"
+              >
+                {showPassword ? <AiFillEyeInvisible /> : <AiFillEye />}{" "}
+                {/* Ikon mata */}
+              </button>
+            </div>
+            <button className="rounded-md mt-2 border border-[#081b57] bg-[#081b57] text-white text-xs font-bold py-3 px-12 tracking-wide uppercase transition-transform ease-in duration-300 active:scale-95 focus:outline-none">
               Sign In
             </button>
+            {error && <p className="text-red">{`*${error}`}</p>}
           </form>
         </div>
 
@@ -133,17 +107,6 @@ const SignUpLayout = () => {
           <div className="bg-gradient-to-r from-[#081b57] to-[#7912d4] text-white flex flex-col items-center justify-center h-full">
             {signIn ? (
               <div className="text-center p-8">
-                <div className="absolute top-0 right-0 p-4 transition-transform duration-700 ease-in-out">
-                  <Image
-                    src="/images/logo.png"
-                    alt="Logo-Perkindo"
-                    width={50}
-                    height={50}
-                    className={`rounded-full bg-white ${
-                      signIn ? "translate-x-0" : "translate-x-full"
-                    }`}
-                  />
-                </div>
                 <h1>Welcome Back!</h1>
                 <p>
                   To keep connected with us, please login with your personal
@@ -158,17 +121,6 @@ const SignUpLayout = () => {
               </div>
             ) : (
               <div className="text-center p-8">
-                <div className="absolute top-0 left-0 p-4 transition-transform duration-700 ease-in-out">
-                  <Image
-                    src="/images/logo.png"
-                    alt="Logo-Perkindo"
-                    width={50}
-                    height={50}
-                    className={`rounded-full bg-white ${
-                      signIn ? "-translate-x-full" : "translate-x-0"
-                    }`}
-                  />
-                </div>
                 <h1>Hello, Friend!</h1>
                 <p>
                   Enter your personal details and start your journey with us

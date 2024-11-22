@@ -9,7 +9,7 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [fade, setFade] = useState(false);
   const [hideTimeout, setHideTimeout] = useState(null);
-  const pathname = usePathname();
+  const pathname = usePathname(); // Menggunakan pathname dari usePathname
   const dropdownRef = useRef(null);
 
   const handleClickOutside = (event) => {
@@ -200,9 +200,12 @@ const Navbar = () => {
             <a href="/contact" className={getLinkClassName("/contact")}>
               Kontak
             </a>
-            <button className="bg-yellow-500 text-[#161D6F] px-4 py-2 rounded">
-              Login
-            </button>
+            <a
+              href={pathname === "/login" ? "/logout" : "/login"} // Menyesuaikan dengan pathname
+              className="bg-yellow-500 text-[#161D6F] px-4 py-2 rounded"
+            >
+              {pathname === "/login" ? "Logout" : "Login"}
+            </a>
           </div>
 
           {/* Menu Mobile */}
@@ -269,52 +272,6 @@ const Navbar = () => {
             >
               Galeri
             </a>
-            {/* Dropdown Berita di Mobile */}
-            <div className="relative">
-              <button
-                onClick={toggleDropdown}
-                className="text-white flex hover:bg-white hover:text-black rounded-lg px-3 py-2 items-center "
-              >
-                <span>Berita</span>
-                <span className="ml-2 text-xs">
-                  {isDropdownOpen ? (
-                    <img
-                      src="./images/chevron-up.svg"
-                      alt="Up Arrow"
-                      className="h-4 w-4 filter invert"
-                    />
-                  ) : (
-                    <img
-                      src="./images/chevron-down (1).svg"
-                      alt="Down Arrow"
-                      className="h-4 w-4 filter invert"
-                    />
-                  )}
-                </span>
-              </button>
-              {isDropdownOpen && (
-                <div
-                  className={`mt-1 w-64 bg-white rounded-md z-20 transition-opacity duration-200 ease-in-out ${
-                    fade ? "opacity-100" : "opacity-0"
-                  }`}
-                >
-                  <div className="grid grid-cols-1 gap-2 p-4">
-                    <a
-                      href="/news"
-                      className="block hover:text-[#161D6F] hover:font-bold"
-                    >
-                      Berita
-                    </a>
-                    <a
-                      href="/agenda"
-                      className="block hover:text-[#161D6F] hover:font-bold"
-                    >
-                      Agenda
-                    </a>
-                  </div>
-                </div>
-              )}
-            </div>
             <a
               href="/layanan"
               className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
@@ -322,7 +279,7 @@ const Navbar = () => {
               Layanan
             </a>
             <a
-              href="/members"
+              href="/anggota"
               className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
             >
               Anggota
@@ -333,9 +290,12 @@ const Navbar = () => {
             >
               Kontak
             </a>
-            <button className="bg-yellow-500 text-[#161D6F] px-4 py-2 rounded">
-              Login
-            </button>
+            <a
+              href={pathname === "/login" ? "/logout" : "/login"}
+              className="bg-yellow-500 text-[#161D6F] block text-center px-4 py-2 rounded"
+            >
+              {pathname === "/login" ? "Logout" : "Login"}
+            </a>
           </div>
         </div>
       )}
