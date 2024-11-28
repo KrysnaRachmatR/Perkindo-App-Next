@@ -278,13 +278,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
   const [pageName, setPageName] = useLocalStorage("selectedMenu", "dashboard");
 
-  // Fungsi untuk logout
   const onLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
 
-    // Setelah logout, arahkan pengguna ke halaman login menggunakan window.location.pathname
-    window.location.pathname = "/"; // Ganti '/login' dengan rute halaman login yang sesuai
+    window.location.pathname = "/";
   };
 
   return (

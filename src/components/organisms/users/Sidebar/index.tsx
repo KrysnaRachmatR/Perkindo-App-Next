@@ -121,6 +121,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
   const [pageName, setPageName] = useLocalStorage("selectedMenu", "dashboard");
 
+  const onLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.pathname = "/";
+  };
+
   return (
     <ClickOutside onClick={() => setSidebarOpen(false)}>
       <aside
@@ -191,7 +198,7 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
         </div>
 
         <button
-          // onClick={onLogout}
+          onClick={onLogout}
           className="flex items-center p-3 mt-auto hover:bg-gray-700 text-black dark:text-white"
         >
           <svg
