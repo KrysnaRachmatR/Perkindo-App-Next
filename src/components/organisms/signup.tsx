@@ -31,8 +31,14 @@ const SignUpLayout = () => {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
     if (token) {
-      router.push("/admin");
+      if (role === "admin") {
+        router.push("/admin"); // Redirect ke halaman admin jika role admin
+      } else if (role === "user") {
+        router.push("/users"); // Redirect ke halaman user jika role user
+      }
     }
   }, [router]);
 
@@ -51,10 +57,23 @@ const SignUpLayout = () => {
         password: signInPassword,
       });
 
-      if (response.data && response.data.token) {
+      if (response.data && response.data.token && response.data.user) {
+        // Simpan token dan role di localStorage
         localStorage.setItem("token", response.data.token);
+
+        // Cek apakah user adalah admin atau anggota
+        const role = response.data.user.hasOwnProperty("username")
+          ? "admin"
+          : "user";
+        localStorage.setItem("role", role);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        router.push("/admin");
+
+        // Redirect sesuai role
+        if (role === "admin") {
+          router.push("/admin");
+        } else if (role === "user") {
+          router.push("/users");
+        }
       } else {
         setErrorSignIn("Login gagal. Silakan coba lagi.");
       }
