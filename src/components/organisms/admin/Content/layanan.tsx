@@ -11,19 +11,34 @@ export default function LayananKonten() {
   const [isSaved, setIsSaved] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [infoItems, setInfoItems] = useState<string[]>([]);
-  const [editorValue, setEditorValue] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [memberInfo, setMemberInfo] = useState<string[]>([]); // Data member_info
+  const [membershipRequirements, setMembershipRequirements] = useState<
+    string[]
+  >([]); // Data membership_requirements
+  const [memberInfoEditor, setMemberInfoEditor] = useState<string[]>([]); // State untuk editor memberInfo
+  const [membershipRequirementsEditor, setMembershipRequirementsEditor] =
+    useState<string[]>([]); // State untuk editor membershipRequirements
+  const [editorValue, setEditorValue] = useState([]);
   useEffect(() => {
-    // Fungsi untuk mengambil data dari API
+    // Fungsi untuk mengambil data dari berbagai API
     const fetchData = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:8000/api/layanan/member_info"
-        );
-        setInfoItems(response.data.data);
+        const types = ["member_info", "membership_requirements"];
+        const allData = {};
 
-        // Menyusun informasi ke dalam format teks untuk inputan biasa
-        setEditorValue(response.data.data); // Set nilai editorValue langsung dengan data array
+        for (let type of types) {
+          const response = await axios.get(
+            `http://localhost:8000/api/layanan/${type}`
+          );
+          allData[type] = response.data.data; // Menyimpan data berdasarkan type
+        }
+
+        // Menyimpan data untuk setiap type di state yang sesuai
+        setMemberInfo(allData["member_info"]);
+        setMembershipRequirements(allData["membership_requirements"]);
+        setMemberInfoEditor(allData["member_info"]); // Menyimpan data untuk editor
+        setMembershipRequirementsEditor(allData["membership_requirements"]); // Menyimpan data untuk editor
       } catch (err) {
         console.error("Error fetching data:", err);
       }
@@ -32,38 +47,47 @@ export default function LayananKonten() {
     fetchData();
   }, []);
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (type: string) => {
     setIsLoading(true);
-    setShowConfirmation(false); // Hide confirmation after clicking OK
+    setShowConfirmation(false);
 
     try {
       const token = localStorage.getItem("token");
-      const filteredEditorValue = editorValue.filter(
+
+      let currentEditor = [];
+      let setEditor;
+
+      if (type === "member_info") {
+        currentEditor = memberInfoEditor || [];
+        setEditor = setMemberInfoEditor;
+      } else if (type === "membership_requirements") {
+        currentEditor = membershipRequirementsEditor || [];
+        setEditor = setMembershipRequirementsEditor;
+      }
+
+      const filteredEditorValue = currentEditor.filter(
         (item) => item.trim() !== ""
       );
 
-      // Indeks yang dihapus
-      const deletedIndices = editorValue
+      const deletedIndices = currentEditor
         .map((item, idx) => (item.trim() === "" ? idx : null))
         .filter((idx) => idx !== null);
 
-      // Item baru yang ditambahkan
-      const newItems = editorValue.filter(
-        (item) => !infoItems.includes(item) && item.trim() !== ""
+      const newItems = filteredEditorValue.filter(
+        (item) => !currentEditor.includes(item) && item.trim() !== ""
       );
 
-      // Assuming editorValue is an array of strings, split into `index` and `value`
       const payload = {
         index: filteredEditorValue.map((_, idx) => idx),
-        value: filteredEditorValue, // Use the original array as values
+        value: filteredEditorValue,
         deletedIndices: deletedIndices.length > 0 ? deletedIndices : undefined,
-        newItems: [],
+        newItems: newItems.length > 0 ? newItems : [],
       };
 
-      console.log("Request Payload:", payload); // Log the payload to check its structure
+      console.log("Request Payload:", payload);
 
-      const response = await axios.post(
-        "http://localhost:8000/api/layanan/member_info", // Ensure this is the correct endpoint
+      const response = await axios.put(
+        `http://localhost:8000/api/layanan/${type}`,
         payload,
         {
           headers: {
@@ -72,9 +96,15 @@ export default function LayananKonten() {
         }
       );
 
-      setEditorValue(filteredEditorValue);
       setIsLoading(false);
-      setIsSaved(true); // Show success dialog
+      setIsSaved(true);
+
+      // Memperbarui data setelah update
+      if (type === "member_info") {
+        setMemberInfoEditor(filteredEditorValue); // Memperbarui state untuk member_info
+      } else if (type === "membership_requirements") {
+        setMembershipRequirementsEditor(filteredEditorValue); // Memperbarui state untuk membership_requirements
+      }
     } catch (err) {
       setIsLoading(false);
       console.error(
@@ -84,10 +114,22 @@ export default function LayananKonten() {
     }
   };
 
-  const handleEditorChange = (index: number, value: string) => {
-    const updatedEditorValue = [...editorValue];
-    updatedEditorValue[index] = value; // Update item berdasarkan index
-    setEditorValue(updatedEditorValue);
+  const handleEditorChange = (index: number, value: string, type: string) => {
+    let updatedEditorValue;
+
+    // Tentukan editor value yang akan diubah berdasarkan type
+    if (type === "member_info") {
+      updatedEditorValue = [...memberInfoEditor];
+      updatedEditorValue[index] = value.trim(); // Update item berdasarkan index dan pastikan value sudah ter-trim
+      setMemberInfoEditor(updatedEditorValue);
+    } else if (type === "membership_requirements") {
+      updatedEditorValue = [...membershipRequirementsEditor];
+      updatedEditorValue[index] = value.trim(); // Update item berdasarkan index dan pastikan value sudah ter-trim
+      setMembershipRequirementsEditor(updatedEditorValue);
+    }
+
+    // Log editor value untuk memastikan pembaruan data yang benar
+    console.log(`${type} editor updated value:`, updatedEditorValue);
   };
 
   const handleConfirm = () => {
@@ -121,10 +163,19 @@ export default function LayananKonten() {
     setIsSaved(false);
   };
 
-  const handleAddItem = () => {
-    // Menambah item kosong baru ke dalam array
-    setEditorValue([...editorValue, ""]);
+  const handleAddItem = (type: string) => {
+    if (type === "member_info") {
+      // Cegah penambahan item kosong
+      if (memberInfoEditor.every((item) => item.trim() !== "")) {
+        setMemberInfoEditor([...memberInfoEditor, ""]);
+      }
+    } else if (type === "membership_requirements") {
+      if (membershipRequirementsEditor.every((item) => item.trim() !== "")) {
+        setMembershipRequirementsEditor([...membershipRequirementsEditor, ""]);
+      }
+    }
   };
+
   return (
     <>
       <p className="text-3xl font-bold text-black mb-6 dark:text-white">
@@ -135,21 +186,23 @@ export default function LayananKonten() {
           <p className="mb-2 font-semibold">Informasi Kartu Tanda Anggota</p>
 
           {/* Menampilkan setiap item dalam array dengan input */}
-          {editorValue.map((item, index) => (
+          {memberInfo.map((item, index) => (
             <div key={index} className="mb-4">
               <label className="block font-medium text-gray-700">
                 {`Item ${index + 1}`}
               </label>
               <textarea
-                value={item}
-                onChange={(e) => handleEditorChange(index, e.target.value)}
+                value={memberInfoEditor[index]} // Menggunakan state yang benar
+                onChange={(e) =>
+                  handleEditorChange(index, e.target.value, "member_info")
+                } // Menambahkan parameter type
                 className="w-full p-2 border rounded-md"
               />
             </div>
           ))}
 
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit("member_info")}
             className="mt-[4rem] px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
           >
             Simpan
@@ -168,12 +221,30 @@ export default function LayananKonten() {
             </p>
           )}
         </div>
-        {/* <div className="bg-white h-min-screen rounded-md drop-shadow-md shadow-2 p-4 mt-8 dark:bg-boxdark">
+        <div className="bg-white h-min-screen rounded-md drop-shadow-md shadow-2 p-4 mt-8 dark:bg-boxdark">
           <p className="mb-2 font-semibold">Persyaratan Kartu Tanda Anggota</p>
-          <RichTextEditor onChange={handleEditorChange} value={content} />
+          {/* Menampilkan setiap item dalam array dengan input */}
+          {membershipRequirements.map((item, index) => (
+            <div key={index} className="mb-4">
+              <label className="block font-medium text-gray-700">
+                {`Item ${index + 1}`}
+              </label>
+              <textarea
+                value={membershipRequirementsEditor[index]} // Menggunakan state yang benar
+                onChange={(e) =>
+                  handleEditorChange(
+                    index,
+                    e.target.value,
+                    "membership_requirements"
+                  )
+                } // Menambahkan parameter type
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
+          ))}
 
           <button
-            onClick={handleSubmit}
+            onClick={() => handleSubmit("membership_requirements")}
             className="mt-[4rem] px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
           >
             Simpan
@@ -184,7 +255,7 @@ export default function LayananKonten() {
               Menyimpan data, harap tunggu...
             </p>
           )}
-        </div> */}
+        </div>
         {/* <div className="bg-white h-min-screen rounded-md drop-shadow-md shadow-2 p-4 mt-8 dark:bg-boxdark">
           <p className=" font-semibold">Persyaratan SBU Konstruksi</p>
           <p className="mb-2">Dokumen Administrasi Badan Usaha</p>
