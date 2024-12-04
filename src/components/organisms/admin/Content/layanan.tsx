@@ -38,16 +38,31 @@ export default function LayananKonten() {
 
     try {
       const token = localStorage.getItem("token");
+      const filteredEditorValue = editorValue.filter(
+        (item) => item.trim() !== ""
+      );
+
+      // Indeks yang dihapus
+      const deletedIndices = editorValue
+        .map((item, idx) => (item.trim() === "" ? idx : null))
+        .filter((idx) => idx !== null);
+
+      // Item baru yang ditambahkan
+      const newItems = editorValue.filter(
+        (item) => !infoItems.includes(item) && item.trim() !== ""
+      );
 
       // Assuming editorValue is an array of strings, split into `index` and `value`
       const payload = {
-        index: editorValue.map((_, idx) => idx), // Mapping to create an array of indices
-        value: editorValue, // Use the original array as values
+        index: filteredEditorValue.map((_, idx) => idx),
+        value: filteredEditorValue, // Use the original array as values
+        deletedIndices: deletedIndices.length > 0 ? deletedIndices : undefined,
+        newItems: [],
       };
 
       console.log("Request Payload:", payload); // Log the payload to check its structure
 
-      const response = await axios.put(
+      const response = await axios.post(
         "http://localhost:8000/api/layanan/member_info", // Ensure this is the correct endpoint
         payload,
         {
@@ -57,6 +72,7 @@ export default function LayananKonten() {
         }
       );
 
+      setEditorValue(filteredEditorValue);
       setIsLoading(false);
       setIsSaved(true); // Show success dialog
     } catch (err) {
@@ -109,7 +125,6 @@ export default function LayananKonten() {
     // Menambah item kosong baru ke dalam array
     setEditorValue([...editorValue, ""]);
   };
-
   return (
     <>
       <p className="text-3xl font-bold text-black mb-6 dark:text-white">
@@ -132,13 +147,18 @@ export default function LayananKonten() {
               />
             </div>
           ))}
-          
 
           <button
             onClick={handleSubmit}
             className="mt-[4rem] px-6 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
           >
             Simpan
+          </button>
+          <button
+            onClick={handleAddItem}
+            className="mt-4 px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
+          >
+            Tambah Item Baru
           </button>
 
           {/* Indikator loading */}
