@@ -47,48 +47,139 @@ export default function LayananKonten() {
     fetchData();
   }, []);
 
-  const handleSubmit = async (type: string) => {
+  // const handleSubmit = async (type: string) => {
+  //   setIsLoading(true);
+  //   setShowConfirmation(false);
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+
+  //     let currentEditor = [];
+  //     let setEditor;
+
+  //     if (type === "member_info") {
+  //       currentEditor = memberInfoEditor || [];
+  //       setEditor = setMemberInfoEditor;
+  //     } else if (type === "membership_requirements") {
+  //       currentEditor = membershipRequirementsEditor || [];
+  //       setEditor = setMembershipRequirementsEditor;
+  //     }
+
+  //     const filteredEditorValue = currentEditor.filter(
+  //       (item) => item.trim() !== ""
+  //     );
+
+  //     const deletedIndices = currentEditor
+  //       .map((item, idx) => (item.trim() === "" ? idx : null))
+  //       .filter((idx) => idx !== null);
+
+  //     const newItems = filteredEditorValue.filter(
+  //       (item) => !currentEditor.includes(item) && item.trim() !== ""
+  //     );
+
+  //     const payload = {
+  //       index: filteredEditorValue.map((_, idx) => idx),
+  //       value: filteredEditorValue,
+  //       deletedIndices: deletedIndices.length > 0 ? deletedIndices : undefined,
+  //       newItems: newItems.length > 0 ? newItems : [],
+  //     };
+
+  //     console.log("Request Payload:", payload);
+
+  //     const response = await axios.post(
+  //       `http://localhost:8000/api/layanan/${type}`,
+  //       payload,
+  //       {
+  //         headers: {
+  //           Authorization: `Bearer ${token}`,
+  //         },
+  //       }
+  //     );
+
+  //     // Update state setelah data berhasil dikirim
+  //     if (type === "member_info") {
+  //       setMemberInfoEditor(filteredEditorValue); // Menyimpan data yang baru
+  //       alert("Member info berhasil diperbarui!"); // Menampilkan pesan berhasil
+  //     } else if (type === "membership_requirements") {
+  //       setMembershipRequirementsEditor(filteredEditorValue); // Menyimpan data yang baru
+  //       alert("Persyaratan keanggotaan berhasil diperbarui!"); // Menampilkan pesan berhasil
+  //     }
+
+  //     setIsLoading(false);
+  //     setIsSaved(true);
+  //   } catch (err) {
+  //     setIsLoading(false);
+  //     console.error(
+  //       "Error updating data:",
+  //       err.response ? err.response.data : err
+  //     );
+  //   }
+  // };
+
+  const handleSubmit = async (type, newItem) => {
     setIsLoading(true);
     setShowConfirmation(false);
 
     try {
       const token = localStorage.getItem("token");
 
-      let currentEditor = [];
-      let setEditor;
+      // Tentukan filteredEditorValue berdasarkan tipe
+      let filteredEditorValue = [];
 
       if (type === "member_info") {
-        currentEditor = memberInfoEditor || [];
-        setEditor = setMemberInfoEditor;
+        filteredEditorValue = memberInfoEditor.filter(
+          (item) => item.trim() !== "" // Pastikan item tidak kosong
+        );
       } else if (type === "membership_requirements") {
-        currentEditor = membershipRequirementsEditor || [];
-        setEditor = setMembershipRequirementsEditor;
+        filteredEditorValue = membershipRequirementsEditor.filter(
+          (item) => item.trim() !== "" // Pastikan item tidak kosong
+        );
       }
 
-      const filteredEditorValue = currentEditor.filter(
-        (item) => item.trim() !== ""
-      );
+      // Tambahkan item baru jika ada
+      if (newItem && newItem.trim() !== "") {
+        filteredEditorValue.push(newItem.trim()); // Menambahkan item baru dari inputan pengguna
+      }
 
-      const deletedIndices = currentEditor
-        .map((item, idx) => (item.trim() === "" ? idx : null))
-        .filter((idx) => idx !== null);
+      // Validasi sebelum pengiriman
+      if (filteredEditorValue.some((item) => item.trim() === "")) {
+        console.error(
+          "Filtered value contains empty items:",
+          filteredEditorValue
+        );
+        return;
+      }
 
-      const newItems = filteredEditorValue.filter(
-        (item) => !currentEditor.includes(item) && item.trim() !== ""
-      );
+      // Tentukan payload dengan log lebih mendalam
+      const payloadIndex = filteredEditorValue.map((item, idx) => {
+        if (item.id) {
+          return item.id;
+        } else {
+          return idx;
+        }
+      });
 
-      const payload = {
-        index: filteredEditorValue.map((_, idx) => idx),
-        value: filteredEditorValue,
-        deletedIndices: deletedIndices.length > 0 ? deletedIndices : undefined,
-        newItems: newItems.length > 0 ? newItems : [],
-      };
+      console.log("Filtered Editor Value:", filteredEditorValue);
+      console.log("Payload Indexes:", payloadIndex);
+      console.log("Payload Value:", filteredEditorValue);
 
-      console.log("Request Payload:", payload);
+      // Tentukan endpoint berdasarkan tipe
+      let endpoint = "";
+      if (type === "member_info") {
+        endpoint = "http://localhost:8000/api/layanan/member_info";
+      } else if (type === "membership_requirements") {
+        endpoint = "http://localhost:8000/api/layanan/membership_requirements";
+      } else {
+        throw new Error("Invalid type");
+      }
 
-      const response = await axios.put(
-        `http://localhost:8000/api/layanan/${type}`,
-        payload,
+      // Kirim request sesuai tipe
+      const response = await axios.post(
+        endpoint,
+        {
+          index: payloadIndex,
+          value: filteredEditorValue,
+        },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -96,20 +187,27 @@ export default function LayananKonten() {
         }
       );
 
+      console.log("Server Response:", response.data);
+
+      // Update state berdasarkan tipe dengan data baru
+      let updatedData;
+      if (type === "member_info") {
+        updatedData = [...filteredEditorValue];
+        setMemberInfo(updatedData);
+        setMemberInfoEditor(updatedData);
+      } else if (type === "membership_requirements") {
+        updatedData = [...filteredEditorValue];
+        setMembershipRequirements(updatedData);
+        setMembershipRequirementsEditor(updatedData);
+      }
+
       setIsLoading(false);
       setIsSaved(true);
-
-      // Memperbarui data setelah update
-      if (type === "member_info") {
-        setMemberInfoEditor(filteredEditorValue); // Memperbarui state untuk member_info
-      } else if (type === "membership_requirements") {
-        setMembershipRequirementsEditor(filteredEditorValue); // Memperbarui state untuk membership_requirements
-      }
     } catch (err) {
       setIsLoading(false);
       console.error(
         "Error updating data:",
-        err.response ? err.response.data : err
+        err.response ? err.response.data : err.message
       );
     }
   };
@@ -163,16 +261,14 @@ export default function LayananKonten() {
     setIsSaved(false);
   };
 
-  const handleAddItem = (type: string) => {
+  const handleAddItem = (type) => {
     if (type === "member_info") {
-      // Cegah penambahan item kosong
-      if (memberInfoEditor.every((item) => item.trim() !== "")) {
-        setMemberInfoEditor([...memberInfoEditor, ""]);
-      }
+      // Tambahkan item baru dengan input kosong sebagai tempat untuk diisi oleh pengguna
+      setMemberInfo((prev) => [...prev, ""]); // Menambahkan item kosong ke memberInfo
+      setMemberInfoEditor((prev) => [...prev, ""]); // Menambahkan item kosong ke memberInfoEditor
     } else if (type === "membership_requirements") {
-      if (membershipRequirementsEditor.every((item) => item.trim() !== "")) {
-        setMembershipRequirementsEditor([...membershipRequirementsEditor, ""]);
-      }
+      setMembershipRequirements((prev) => [...prev, ""]);
+      setMembershipRequirementsEditor((prev) => [...prev, ""]);
     }
   };
 
@@ -186,13 +282,14 @@ export default function LayananKonten() {
           <p className="mb-2 font-semibold">Informasi Kartu Tanda Anggota</p>
 
           {/* Menampilkan setiap item dalam array dengan input */}
+          {/* Menampilkan setiap item dalam array dengan input */}
           {memberInfo.map((item, index) => (
             <div key={index} className="mb-4">
               <label className="block font-medium text-gray-700">
                 {`Item ${index + 1}`}
               </label>
               <textarea
-                value={memberInfoEditor[index]} // Menggunakan state yang benar
+                value={memberInfoEditor[index]} // Sinkron dengan editor state
                 onChange={(e) =>
                   handleEditorChange(index, e.target.value, "member_info")
                 } // Menambahkan parameter type
@@ -208,7 +305,7 @@ export default function LayananKonten() {
             Simpan
           </button>
           <button
-            onClick={handleAddItem}
+            onClick={() => handleAddItem("member_info")}
             className="mt-4 px-6 py-2 bg-green-500 text-white rounded-md hover:bg-green-600"
           >
             Tambah Item Baru
