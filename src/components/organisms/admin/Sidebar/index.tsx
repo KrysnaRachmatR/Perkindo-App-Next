@@ -65,7 +65,7 @@ const menuGroups = [
           </svg>
         ),
         label: "Agenda",
-        route: "/admin/list/agenda",
+        route: "/admin/content/agenda",
       },
       {
         icon: (
