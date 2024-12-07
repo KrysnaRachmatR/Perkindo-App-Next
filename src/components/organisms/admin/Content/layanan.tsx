@@ -218,11 +218,11 @@ export default function LayananKonten() {
     // Tentukan editor value yang akan diubah berdasarkan type
     if (type === "member_info") {
       updatedEditorValue = [...memberInfoEditor];
-      updatedEditorValue[index] = value.trim(); // Update item berdasarkan index dan pastikan value sudah ter-trim
+      updatedEditorValue[index] = value; // Update item berdasarkan index dan pastikan value sudah ter-trim
       setMemberInfoEditor(updatedEditorValue);
     } else if (type === "membership_requirements") {
       updatedEditorValue = [...membershipRequirementsEditor];
-      updatedEditorValue[index] = value.trim(); // Update item berdasarkan index dan pastikan value sudah ter-trim
+      updatedEditorValue[index] = value; // Update item berdasarkan index dan pastikan value sudah ter-trim
       setMembershipRequirementsEditor(updatedEditorValue);
     }
 

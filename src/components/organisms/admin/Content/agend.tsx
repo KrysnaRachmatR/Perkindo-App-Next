@@ -11,6 +11,8 @@ const AgendaPage = () => {
     caption: "",
   });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
   // Mengambil data agenda dari API
   useEffect(() => {
@@ -36,12 +38,13 @@ const AgendaPage = () => {
   // Fungsi untuk menambahkan agenda dengan token autentikasi
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setIsLoading(true); // Mulai proses loading
 
-    // Ambil token dari localStorage (atau sesuaikan sesuai kebutuhan)
-    const token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("token");
 
     if (!token) {
       setError("You must be logged in to add an agenda.");
+      setIsLoading(false); // Matikan loading jika terjadi error
       return;
     }
 
@@ -51,16 +54,24 @@ const AgendaPage = () => {
         newAgenda,
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Menambahkan token di header Authorization
+            Authorization: `Bearer ${token}`,
           },
         }
       );
+
       setAgendas([...agendas, response.data.agenda]);
       setNewAgenda({ date: "", title: "", caption: "" });
       setError("");
+      setIsSaved(true); // Tampilkan notifikasi berhasil
     } catch (err) {
       setError("Failed to create agenda. Please try again.");
+    } finally {
+      setIsLoading(false); // Matikan loading setelah selesai
     }
+  };
+
+  const handleOk = () => {
+    setIsSaved(false); // Sembunyikan notifikasi keberhasilan
   };
 
   return (
@@ -121,6 +132,28 @@ const AgendaPage = () => {
         </div>
         {error && <p className="text-red-500 mt-2">{error}</p>}
       </form>
+
+      {/* Indikator loading */}
+      {isLoading && (
+        <p className="mt-4 text-blue-500">Menyimpan data, harap tunggu...</p>
+      )}
+
+      {/* Notifikasi berhasil */}
+      {isSaved && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-80 text-center">
+            <p className="text-lg font-semibold mb-4 text-green-600">
+              Data berhasil disimpan!
+            </p>
+            <button
+              onClick={handleOk}
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 mt-4"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tabel agenda */}
       <table className="min-w-full bg-white border border-gray-200 rounded-md shadow-md">
