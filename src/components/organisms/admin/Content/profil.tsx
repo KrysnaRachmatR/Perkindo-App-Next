@@ -3,19 +3,17 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const ProfileAdminPage = () => {
-  const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(null); // Untuk menyimpan data profile dari database
   const [formData, setFormData] = useState({
     title: "",
     section1: "",
     visi: "",
-    misi: [],
-    header_image: null,
+    misi: [], // Menggunakan array untuk misi
   });
-  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
-  // Fetch profile data from the backend
+  // Mendapatkan data profile dari backend saat komponen pertama kali dimuat
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -26,23 +24,23 @@ const ProfileAdminPage = () => {
             title: response.data.data.title,
             section1: response.data.data.section1,
             visi: response.data.data.visi,
-            misi: response.data.data.misi,
-            header_image: null,
+            misi: response.data.data.misi || [], // Menyertakan data misi
           });
+        } else {
+          setMessage(response.data.message);
         }
       } catch (error) {
         console.error("Error fetching profile data:", error);
+        setMessage("Gagal mendapatkan data profil.");
       }
     };
 
     fetchProfile();
   }, []);
 
-  const getToken = () => {
-    return localStorage.getItem("token");
-  };
+  const getToken = () => localStorage.getItem("token");
 
-  // Handle form input changes
+  // Mengelola perubahan pada form input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({
@@ -51,215 +49,150 @@ const ProfileAdminPage = () => {
     });
   };
 
-  const handleFileChange = (e) => {
+  // Mengelola perubahan pada input misi
+  const handleMisiChange = (index, e) => {
+    const { value } = e.target;
+    const updatedMisi = [...formData.misi];
+    updatedMisi[index] = value;
     setFormData({
       ...formData,
-      header_image: e.target.files[0],
+      misi: updatedMisi,
     });
   };
 
-  // Handle form submission for storing or updating profile data
+  // Menambahkan item misi baru
+  const handleAddMisi = () => {
+    setFormData({
+      ...formData,
+      misi: [...formData.misi, ""], // Menambahkan item baru dengan nilai kosong
+    });
+  };
+
+  // Mengirim data untuk diperbarui di backend
   const handleSubmit = async (e) => {
     e.preventDefault();
     const token = getToken();
 
     if (!token) {
-      setMessage("You must be logged in to perform this action.");
+      setMessage("Anda harus login untuk melakukan tindakan ini.");
       return;
     }
 
     setLoading(true);
-    const formDataToSend = new FormData();
-    formDataToSend.append("title", formData.title);
-    formDataToSend.append("section1", formData.section1);
-    formDataToSend.append("visi", formData.visi);
-    formDataToSend.append("misi", JSON.stringify(formData.misi));
 
-    if (formData.header_image) {
-      formDataToSend.append("header_image", formData.header_image);
-    }
+    // Membuat objek data untuk dikirim
+    const dataToSend = {
+      title: formData.title,
+      section1: formData.section1,
+      visi: formData.visi,
+      misi: formData.misi, // Kirim misi sebagai array
+    };
 
     try {
-      const response = isEditing
-        ? await axios.put(
-            `http://localhost:8000/api/profile/${profile.id}`,
-            formDataToSend,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`, // Add Bearer token to the request header
-              },
-            }
-          )
-        : await axios.post(
-            "http://localhost:8000/api/profile",
-            formDataToSend,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`, // Add Bearer token to the request header
-              },
-            }
-          );
+      const response = await axios.put(
+        `http://localhost:8000/api/profile/${profile.id}`,
+        dataToSend,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // Pastikan content-type adalah 'application/json'
+          },
+        }
+      );
+
+      console.log(response.data); // Cek response dari backend
 
       if (response.data.success) {
         setMessage(response.data.message);
-        setProfile(response.data.data);
-        setIsEditing(false);
+        setProfile(response.data.data); // Update profile setelah berhasil
+      } else {
+        setMessage("Gagal memperbarui profil. Pastikan data sudah benar.");
       }
     } catch (error) {
-      setMessage("Error occurred while saving the profile content.");
-      console.error(error);
+      console.error("Error updating profile:", error);
+      setMessage("Gagal memperbarui profil. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle delete profile
-  const handleDelete = async () => {
-    const token = getToken();
-
-    if (!token) {
-      setMessage("You must be logged in to perform this action.");
-      return;
-    }
-
-    if (profile) {
-      try {
-        await axios.delete(`http://localhost:8000/api/profile/${profile.id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // Add Bearer token to the request header
-          },
-        });
-        setProfile(null);
-        setMessage("Profile content successfully deleted.");
-      } catch (error) {
-        setMessage("Error occurred while deleting the profile content.");
-        console.error(error);
-      }
-    }
-  };
-
   return (
     <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">
-        {isEditing ? "Edit Profile" : "Profile Admin"}
-      </h1>
+      <h1 className="text-3xl font-bold mb-4">Edit Profile</h1>
 
       {message && <p className="text-green-500 mb-4">{message}</p>}
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-lg font-medium">Title</label>
-          <input
-            type="text"
-            name="title"
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium">Section 1</label>
-          <textarea
-            name="section1"
-            value={formData.section1}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium">Visi</label>
-          <textarea
-            name="visi"
-            value={formData.visi}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium">
-            Misi (JSON format)
-          </label>
-          <textarea
-            name="misi"
-            value={formData.misi}
-            onChange={(e) =>
-              handleChange({
-                target: { name: "misi", value: e.target.value.split(",") },
-              })
-            }
-            className="w-full p-2 border rounded"
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block text-lg font-medium">Header Image</label>
-          <input
-            type="file"
-            name="header_image"
-            onChange={handleFileChange}
-            className="w-full p-2 border rounded"
-          />
-        </div>
-
-        <div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white p-2 rounded"
-            disabled={loading}
-          >
-            {loading
-              ? "Saving..."
-              : isEditing
-              ? "Update Profile"
-              : "Create Profile"}
-          </button>
-        </div>
-      </form>
-
-      {profile && !isEditing && (
-        <div className="mt-8">
-          <h2 className="text-2xl font-bold mb-4">Current Profile</h2>
+      {profile ? (
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <p>
-              <strong>Title:</strong> {profile.title}
-            </p>
-            <p>
-              <strong>Section 1:</strong> {profile.section1}
-            </p>
-            <p>
-              <strong>Visi:</strong> {profile.visi}
-            </p>
-            <p>
-              <strong>Misi:</strong> {profile.misi.join(", ")}
-            </p>
-            <img
-              src={`/storage/${profile.header_image}`}
-              alt="Header"
-              className="mt-4"
+            <label className="block text-lg font-medium">Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
             />
           </div>
 
-          <button
-            onClick={() => setIsEditing(true)}
-            className="mt-4 bg-yellow-500 text-white p-2 rounded"
-          >
-            Edit Profile
-          </button>
+          <div>
+            <label className="block text-lg font-medium">Section 1</label>
+            <textarea
+              name="section1"
+              value={formData.section1}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
 
-          <button
-            onClick={handleDelete}
-            className="mt-4 bg-red-500 text-white p-2 rounded"
-          >
-            Delete Profile
-          </button>
-        </div>
+          <div>
+            <label className="block text-lg font-medium">Visi</label>
+            <textarea
+              name="visi"
+              value={formData.visi}
+              onChange={handleChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-lg font-medium">Misi</label>
+            {formData.misi.map((misi, index) => (
+              <div key={index} className="mb-2">
+                <input
+                  type="text"
+                  value={misi}
+                  onChange={(e) => handleMisiChange(index, e)}
+                  className="w-full p-2 border rounded"
+                  required
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col space-y-4">
+            <button
+              type="button"
+              onClick={handleAddMisi} // Menambahkan item misi baru
+              className="bg-green-500 text-white p-2 rounded w-[30%]"
+            >
+              Tambah Misi
+            </button>
+
+            <button
+              type="submit"
+              className="bg-blue-500 text-white p-2 rounded"
+              disabled={loading}
+            >
+              {loading ? "Saving..." : "Update Profile"}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <p>Loading profile data...</p>
       )}
     </div>
   );
