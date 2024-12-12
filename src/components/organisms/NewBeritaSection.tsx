@@ -10,6 +10,12 @@ export default function NewBeritaSection() {
   const [showPopup, setShowPopup] = useState(false);
   const [latestBerita, setLatestBerita] = useState(null);
 
+  // Fungsi untuk memformat tanggal
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  };
+
   // Ambil data berita terbaru
   useEffect(() => {
     const fetchLatestBerita = async () => {
@@ -54,6 +60,7 @@ export default function NewBeritaSection() {
           content={latestBerita.caption}
           className="mt-2 text-gray-600"
         />
+
         <div>
           <ButtonBerita
             label="Baca Selengkapnya"
@@ -67,10 +74,9 @@ export default function NewBeritaSection() {
       {showPopup && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
           <PopupBerita
+            time={formatDate(latestBerita.created_at)} // Menambahkan waktu di popup
             title={latestBerita.title}
             content={latestBerita.caption}
-            source="Sumber Tidak Diketahui" // Tambahkan jika sumber tersedia
-            time="Tidak Tersedia" // Tambahkan jika waktu tersedia
             imageSrc={`http://localhost:8000/storage/${latestBerita.image}`} // Sesuaikan path storage
             onClose={() => setShowPopup(false)}
           />

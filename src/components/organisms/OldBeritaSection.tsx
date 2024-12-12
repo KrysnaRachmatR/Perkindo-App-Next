@@ -8,6 +8,20 @@ export default function LatestBeritaSection() {
   const [beritas, setBeritas] = useState([]);
   const [latestBerita, setLatestBerita] = useState(null);
 
+  // Fungsi untuk memformat tanggal
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  };
+
+  // Fungsi untuk memotong teks dan menambahkan elipsis
+  const truncateText = (text, maxLength) => {
+    if (text.length > maxLength) {
+      return text.substring(0, maxLength) + "..."; // Memotong teks dan menambahkan elipsis
+    }
+    return text;
+  };
+
   useEffect(() => {
     // Fetch data dari backend
     const fetchBeritas = async () => {
@@ -39,10 +53,9 @@ export default function LatestBeritaSection() {
           <CardBerita
             key={berita.id}
             imageSrc={`http://localhost:8000/storage/${berita.image}`} // Sesuaikan path
-            category={berita.category || "Uncategorized"} // Pastikan category ada
             title={berita.title}
-            source="Sumber Tidak Diketahui" // Tambahkan jika sumber tersedia
-            time="Tidak Tersedia" // Tambahkan jika waktu tersedia
+            content={truncateText(berita.caption, 20)} // Batasi teks hanya 80 karakter
+            time={formatDate(berita.created_at)} // Menambahkan waktu pembuatan
           />
         ))}
       </div>

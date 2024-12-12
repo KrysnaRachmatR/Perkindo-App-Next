@@ -15,7 +15,6 @@ interface PopupBeritaProps {
 export default function PopupBerita({
   title,
   content,
-  source,
   time,
   imageSrc, // Menggunakan imageSrc
   onClose,
@@ -37,13 +36,10 @@ export default function PopupBerita({
             className="rounded-lg"
           />
         </div>
+        <TextBerita content={` ${time}`} className="text-sm text-red-500" />
 
         <TextBerita content={title} className="text-2xl font-bold mb-2" />
         <TextBerita content={content} className="mb-4 text-gray-600" />
-        <TextBerita
-          content={`${source} • ${time}`}
-          className="text-sm text-red-500"
-        />
       </div>
     </div>
   );

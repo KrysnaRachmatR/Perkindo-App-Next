@@ -6,17 +6,15 @@ import PopupBerita from "../molecules/PopupBerita"; // Import Popup for card
 
 interface CardBeritaProps {
   imageSrc: string;
-  category: string;
+  content: string;
   title: string;
-  source: string;
   time: string;
 }
 
 export default function CardBerita({
   imageSrc,
-  category,
+  content,
   title,
-  source,
   time,
 }: CardBeritaProps) {
   const [showPopup, setShowPopup] = useState(false);
@@ -25,12 +23,9 @@ export default function CardBerita({
     <div className="max-w-sm bg-white rounded-lg shadow-md overflow-hidden">
       <ImageAtom src={imageSrc} alt={title} width={400} height={300} />
       <div className="p-4">
-        <TextBerita content={category} className="text-xs text-red-500" />
+        <TextBerita content={`${time}`} className="text-xs text-red-500" />
         <TextBerita content={title} className="mt-2 text-lg font-bold" />
-        <TextBerita
-          content={`${source} • ${time}`}
-          className="text-sm text-red-500"
-        />
+        <TextBerita content={content} className="text-md text-red-500" />
         <button
           className="mt-2 text-blue-500"
           onClick={() => setShowPopup(true)}
@@ -41,14 +36,15 @@ export default function CardBerita({
 
       {/* Render Popup when showPopup is true */}
       {showPopup && (
-        <PopupBerita
-          title={title}
-          content="Detail berita yang lebih panjang...."
-          source={source}
-          imageSrc={imageSrc}
-          time={time}
-          onClose={() => setShowPopup(false)}
-        />
+        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50">
+          <PopupBerita
+            time={time}
+            title={title}
+            content={content}
+            imageSrc={imageSrc}
+            onClose={() => setShowPopup(false)}
+          />
+        </div>
       )}
     </div>
   );
