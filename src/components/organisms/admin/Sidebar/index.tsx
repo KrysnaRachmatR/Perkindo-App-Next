@@ -205,7 +205,7 @@ const menuGroups = [
           </svg>
         ),
         label: "Berita",
-        route: "/admin/list/berita",
+        route: "/admin/content/berita",
       },
       {
         icon: (
