@@ -3,13 +3,14 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 
 const ProfileAdminPage = () => {
-  const [profile, setProfile] = useState(null); // Untuk menyimpan data profile dari database
+  const [profile, setProfile] = useState(null);
   const [formData, setFormData] = useState({
     title: "",
     section1: "",
     visi: "",
-    misi: [], // Menggunakan array untuk misi
+    misi: [],
   });
+  const [headerImage, setHeaderImage] = useState(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -24,7 +25,7 @@ const ProfileAdminPage = () => {
             title: response.data.data.title,
             section1: response.data.data.section1,
             visi: response.data.data.visi,
-            misi: response.data.data.misi || [], // Menyertakan data misi
+            misi: response.data.data.misi || [],
           });
         } else {
           setMessage(response.data.message);
@@ -68,6 +69,11 @@ const ProfileAdminPage = () => {
     });
   };
 
+  // Mengelola perubahan gambar
+  const handleImageChange = (e) => {
+    setHeaderImage(e.target.files[0]);
+  };
+
   // Mengirim data untuk diperbarui di backend
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -100,7 +106,7 @@ const ProfileAdminPage = () => {
         }
       );
 
-      console.log(response.data); // Cek response dari backend
+      console.log(response.data);
 
       if (response.data.success) {
         setMessage(response.data.message);
@@ -113,6 +119,48 @@ const ProfileAdminPage = () => {
       setMessage("Gagal memperbarui profil. Silakan coba lagi.");
     } finally {
       setLoading(false);
+    }
+
+    // Jika ada gambar yang diupload dan sebelumnya sudah ada gambar di database, hapus gambar lama
+    if (headerImage) {
+      const formDataImage = new FormData();
+      formDataImage.append("header_image", headerImage);
+
+      try {
+        // Hapus gambar lama jika ada
+        if (profile.header_image) {
+          await axios.delete(
+            `http://localhost:8000/api/profile/${profile.id}/delete-image`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        }
+
+        // Mengirim gambar baru
+        const responseImage = await axios.put(
+          `http://localhost:8000/api/profile/${profile.id}`,
+          formDataImage,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "multipart/form-data", // Pastikan menggunakan multipart/form-data untuk upload file
+            },
+          }
+        );
+
+        if (responseImage.data.success) {
+          setMessage("Gambar berhasil diperbarui.");
+          setProfile(responseImage.data.data); // Update profile setelah berhasil
+        } else {
+          setMessage("Gagal memperbarui gambar.");
+        }
+      } catch (error) {
+        console.error("Error updating image:", error);
+        setMessage("Gagal memperbarui gambar. Silakan coba lagi.");
+      }
     }
   };
 
@@ -173,10 +221,19 @@ const ProfileAdminPage = () => {
             ))}
           </div>
 
+          <div>
+            <label className="block text-lg font-medium">Upload Image</label>
+            <input
+              type="file"
+              onChange={handleImageChange}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+
           <div className="flex flex-col space-y-4">
             <button
               type="button"
-              onClick={handleAddMisi} // Menambahkan item misi baru
+              onClick={handleAddMisi}
               className="bg-green-500 text-white p-2 rounded w-[30%]"
             >
               Tambah Misi
