@@ -11,14 +11,12 @@ const MainTemplateGaleri = () => {
   useEffect(() => {
     const fetchMedia = async () => {
       try {
-        const response = await fetch(
-          "http://localhost:8000/api/instagram/media"
-        ); // URL API untuk mendapatkan media
+        const response = await fetch("http://localhost:8000/api/galeri");
         if (!response.ok) {
           throw new Error("Failed to fetch media");
         }
         const data = await response.json();
-        setMedia(data.data); // Sesuaikan dengan struktur respons Anda
+        setMedia(data.data);  // Menyimpan data ke state 'media'
       } catch (error) {
         console.error(error);
       }
@@ -38,7 +36,6 @@ const MainTemplateGaleri = () => {
   };
 
   const handleModalClick = (e) => {
-    // Cek apakah klik terjadi di luar konten modal
     if (e.target === e.currentTarget) {
       closeModal();
     }
@@ -50,11 +47,11 @@ const MainTemplateGaleri = () => {
       <div className="bg-slate-100 py-8" style={{ minHeight: "50rem" }}>
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {media.map((item) => (
+            {(media || []).map((item) => (
               <div
                 key={item.id}
                 className="relative group cursor-pointer hover:shadow-lg hover:shadow-black/50 transition-shadow duration-300"
-                onClick={() => openModal(item)} // Menambahkan event click untuk membuka modal
+                onClick={() => openModal(item)}
               >
                 <div className="p-0 h-64 flex items-center justify-center">
                   {item.media_type === "VIDEO" ? (
@@ -68,7 +65,7 @@ const MainTemplateGaleri = () => {
                   ) : (
                     <img
                       className="w-full h-full object-cover"
-                      src={item.media_url}
+                      src={`http://localhost:8000/storage/galeri/${item.id}/${item.gambar}`}  // Perbaiki URL
                       alt={item.caption || "Galeri"}
                     />
                   )}
@@ -94,12 +91,12 @@ const MainTemplateGaleri = () => {
       </div>
 
       {/* Modal Pop-up */}
-      {isModalOpen && (
+      {isModalOpen && selectedMedia && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-          onClick={handleModalClick} // Menambahkan event untuk klik di luar modal
+          onClick={handleModalClick}
         >
-          <div className="bg-white p-4 rounded-lg max-w-5xl   flex relative">
+          <div className="bg-white p-4 rounded-lg max-w-5xl flex relative">
             {/* Gambar di sebelah kiri */}
             <div className="w-1/2 p-4">
               {selectedMedia.media_type === "VIDEO" ? (
@@ -113,7 +110,7 @@ const MainTemplateGaleri = () => {
               ) : (
                 <img
                   className="w-full h-auto object-cover mx-auto"
-                  src={selectedMedia.media_url}
+                  src={`http://localhost:8000/storage/galeri/${selectedMedia.id}/${selectedMedia.gambar}`} // Perbaiki URL gambar modal
                   alt={selectedMedia.caption || "Galeri"}
                 />
               )}
@@ -129,7 +126,7 @@ const MainTemplateGaleri = () => {
             {/* Close Button (X) */}
             <button
               onClick={closeModal}
-              className="absolute top-1 right-3 text-xl font-bold text-gray-700 hover:text-red-600 "
+              className="absolute top-1 right-3 text-xl font-bold text-gray-700 hover:text-red-600"
             >
               &times; {/* Simbol X */}
             </button>

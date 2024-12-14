@@ -35,6 +35,7 @@ const Galeri = () => {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("Galeri Data:", response.data);
       setGaleri(response.data);
     } catch (error) {
       console.error(error);
@@ -172,6 +173,7 @@ const Galeri = () => {
   if (error) {
     return <div>{error}</div>;
   }
+
   return (
     <div className="mx-auto max-w-7xl ">
       <div className="admin-page ">
@@ -236,40 +238,50 @@ const Galeri = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200 dark:bg-boxdark dark:text-white">
-                  {galeri.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.judul}
-                      </td>
-                      <td className="px-6 py-4 max-w-xs break-words word-break break-word">
-                        {/* Memastikan caption yang panjang tidak tembus */}
-                        {item.caption}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {item.gambar && (
-                          <img
-                            src={`http://localhost:8000/storage/${item.gambar}`}
-                            alt={item.judul}
-                            width={100}
-                          />
-                        )}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => handleEdit(item.id)}
-                          className="text-primary"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="text-red ml-2"
-                        >
-                          Delete
-                        </button>
+                  {Array.isArray(galeri) && galeri.length > 0 ? (
+                    galeri.map((item) => (
+                      <tr key={item.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.judul}
+                        </td>
+                        <td className="px-6 py-4 max-w-xs break-words word-break break-word">
+                          {/* Memastikan caption yang panjang tidak tembus */}
+                          {item.caption}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {item.gambar ? (
+                            <img
+                             src={`https://localhost:8000/storage/galeri/${item.id}/${item.gambar}`}
+                              alt={item.judul}
+                              width={100}
+                            />
+                          ) : (
+                            <span>No image available</span> // Pesan jika gambar tidak ada
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <button
+                            onClick={() => handleEdit(item.id)}
+                            className="text-primary"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="text-red ml-4"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="4" className="text-center py-4">
+                        No data available
                       </td>
                     </tr>
-                  ))}
+                  )}
                 </tbody>
               </table>
             </div>
