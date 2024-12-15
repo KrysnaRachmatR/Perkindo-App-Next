@@ -62,42 +62,73 @@ const ValidasiKTA = () => {
 
   // Reject KTA
   const rejectKTA = async (id: number) => {
-    const comment = prompt("Masukkan komentar untuk penolakan KTA:");
-    if (!comment) {
-      alert("Komentar diperlukan untuk penolakan.");
-      return;
-    }
-    try {
-      await axios.put(`http://localhost:8000/api/kta/reject/${id}`, {
-        comment,
-      });
-      alert("Berhasil menolak KTA");
-      fetchKTAs();
-    } catch (err: any) {
-      alert(`Gagal menolak KTA: ${err.response?.data?.message}`);
-    }
-  };
+  const komentar = prompt("Masukkan komentar untuk penolakan KTA:");
+  if (!komentar) {
+    alert("Komentar diperlukan untuk penolakan.");
+    return;
+  }
+  try {
+    await axios.put(`http://localhost:8000/api/kta/approve/${id}`, {
+      status_diterima: "rejected",
+      komentar, // Sesuaikan dengan nama yang diharapkan di backend
+    });
+    alert("Berhasil menolak KTA");
+    fetchKTAs();
+  } catch (err: any) {
+    alert(`Gagal menolak KTA: ${err.response?.data?.message}`);
+  }
+};
+
 
   // Download KTA Files
-  const downloadKTAFiles = async (id: number) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8000/api/download-kta/${id}`,
-        {
-          responseType: "blob",
-        }
-      );
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement("a");
-      link.href = url;
-      link.setAttribute("download", `kta_files_${id}.zip`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    } catch (err: any) {
-      alert(`Gagal mengunduh berkas: ${err.response?.data?.message}`);
+ const downloadKTAFiles = async (userId) => {  // Gantilah id dengan userId agar lebih jelas
+  try {
+    const token = localStorage.getItem('token'); // Ambil token dari localStorage atau tempat lain
+
+    if (!token) {
+      alert('Token tidak ditemukan! Silakan login kembali.');
+      return;
     }
-  };
+
+    console.log('Attempting to download KTA files for user: ', userId);
+
+    // Pastikan menggunakan userId pada URL
+    const response = await fetch(`http://localhost:8000/api/download-kta/${userId}`, {  // Menggunakan userId
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // Kirim token di header
+      },
+    });
+
+    // Mengecek apakah response berhasil (status 200)
+    if (!response.ok) {
+      const errorMessage = await response.json();
+      console.error('Error in downloading file:', errorMessage.message);
+      alert(errorMessage.message || 'Terjadi kesalahan saat mengunduh berkas.');
+      return;
+    }
+
+    // Jika response berhasil, unduh file ZIP
+    const blob = await response.blob();
+    const downloadUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    a.download = 'kta_files.zip'; // Nama file yang akan diunduh
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    console.log('Download started successfully!');
+  } catch (error) {
+    console.error('Error during file download:', error);
+    alert('Terjadi kesalahan saat mengunduh berkas.');
+  }
+};
+
+
+
+
 
   useEffect(() => {
     fetchKTAs();
