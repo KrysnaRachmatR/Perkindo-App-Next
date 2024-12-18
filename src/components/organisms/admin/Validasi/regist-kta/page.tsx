@@ -114,7 +114,7 @@ const ValidasiKTA = () => {
     const downloadUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = downloadUrl;
-    a.download = 'kta_files.zip'; // Nama file yang akan diunduh
+    a.download = `KTA-${userId}.zip`; // Nama file yang akan diunduh
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -207,7 +207,7 @@ const ValidasiKTA = () => {
                       Reject
                     </button>
                     <button
-                      onClick={() => downloadKTAFiles(kta.id)}
+                      onClick={() => downloadKTAFiles(kta.user_id)}
                       className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                     >
                       Download
