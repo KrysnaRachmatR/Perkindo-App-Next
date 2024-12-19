@@ -1,12 +1,12 @@
+import ValidasiKTA from "@/components/organisms/admin/Validasi/regist-kta/page";
 import DefaultLayout from "@/components/templates/DefaultAdminTemplate";
-import ValidasiKTAComponent from "@/components/organisms/admin/Validasi/regist-kta/page";
 
-const ValidasiKTA = () => {
+const ValidasiRegistrasiKTA = () => {
   return (
     <DefaultLayout>
-      <ValidasiKTAComponent /> {/* Gunakan nama baru */}
+      <ValidasiKTA />
     </DefaultLayout>
   );
 };
 
-export default ValidasiKTA;
+export default ValidasiRegistrasiKTA;

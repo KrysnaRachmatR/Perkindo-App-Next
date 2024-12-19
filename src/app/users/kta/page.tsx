@@ -5,7 +5,7 @@ const Kta = () => {
   const userData = { name: "John Doe", hasKTA: true };
   return (
     <DefaultLayoutUsers hasKTA={userData.hasKTA}>
-      <KtaLayout />
+      <KtaLayout hasKTA={userData.hasKTA} />
     </DefaultLayoutUsers>
   );
 };

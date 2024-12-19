@@ -72,7 +72,7 @@ const SignUpLayout = () => {
         if (role === "admin") {
           router.push("/admin");
         } else if (role === "user") {
-          router.push("/users");
+          router.push("/users/kta");
         }
       } else {
         setErrorSignIn("Login gagal. Silakan coba lagi.");

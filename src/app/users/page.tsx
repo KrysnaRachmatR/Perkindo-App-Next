@@ -1,5 +1,4 @@
 "use client";
-import KtaLayout from "@/components/organisms/users/KTA/page";
 import DefaultLayoutUsers from "@/components/templates/DefaultUsersTemplate";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -31,7 +30,7 @@ export default function Home() {
   return (
     <>
       <DefaultLayoutUsers hasKTA={userData.hasKTA}>
-        <KtaLayout />
+        <p>Selamat Datang {userData.name}</p>
       </DefaultLayoutUsers>
     </>
   );

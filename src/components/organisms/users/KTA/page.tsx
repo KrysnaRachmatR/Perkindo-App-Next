@@ -1,184 +1,373 @@
 "use client";
-import { useRef, useState, useEffect } from "react";
-
-const KtaLayout = () => {
-  const canvasRef = useRef(null);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [ktaData, setKtaData] = useState({
-    nama: "Halo Dek",
-    tanggal: "01 Jan 2024 - 31 Des 2025",
-    alamat: "123-456-7890",
-    email: "hello@reallygreatsite.com",
-  });
-
-  const drawCanvas = () => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const background = new Image();
-    background.src = "/images/bg-kta.png";
-
-    background.onload = () => {
-      // Draw background image
-      ctx.drawImage(background, 0, 0, canvas.width, canvas.height);
-
-      // Header
-      ctx.fillStyle = "#000000";
-      ctx.font = "bold 28px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("KARTU TANDA ANGGOTA", canvas.width / 2, 40);
-
-      // Nama Perusahaan
-      ctx.font = "bold 20px Arial";
-      ctx.fillStyle = "#004d7a";
-      ctx.textAlign = "left";
-      ctx.fillText("PT. WONG TULUS", 30, 80);
-
-      // Garis horizontal pemisah
-      ctx.strokeStyle = "#004d7a";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(30, 90);
-      ctx.lineTo(canvas.width - 30, 90);
-      ctx.stroke();
-
-      // Teks data anggota (Detail Informasi)
-      ctx.fillStyle = "#000000";
-      ctx.font = "14px Arial";
-      ctx.textAlign = "left";
-      ctx.fillText(`Nama Direktur: ${ktaData.nama}`, 30, 130);
-      ctx.fillText(`Masa Berlaku: ${ktaData.tanggal}`, 30, 160);
-      ctx.fillText(`Email: ${ktaData.email}`, 30, 190);
-      ctx.fillText(`Nomor Telepon: ${ktaData.alamat}`, 30, 220);
-
-      // Lingkaran untuk foto profil di sisi kanan
-      ctx.beginPath();
-      const photoX = canvas.width - 100; // Posisi X foto
-      ctx.arc(photoX, 180, 75, 0, 2 * Math.PI); // Lingkaran foto
-      ctx.fillStyle = "#ffffff";
-      ctx.fill();
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = "#004d7a";
-      ctx.stroke();
-
-      // Gambar berita.png pada foto profil
-      const img = new Image(); // Membuat objek gambar baru
-      img.src = "/images/logo.png"; // Ganti dengan path ke gambar yang diinginkan
-
-      img.onload = () => {
-        // Menggambar gambar berita.png di dalam lingkaran
-        ctx.save(); // Menyimpan status canvas
-        ctx.beginPath();
-        ctx.arc(photoX, 180, 75, 0, 2 * Math.PI); // Lingkaran untuk memotong gambar
-        ctx.clip(); // Memotong gambar sesuai lingkaran
-
-        // Menggambar gambar dengan ukuran lebih kecil
-        const imgSize = 120; // Ukuran gambar yang lebih kecil
-        ctx.drawImage(
-          img,
-          photoX - imgSize / 2,
-          180 - imgSize / 2,
-          imgSize,
-          imgSize
-        ); // Ukuran gambar yang disesuaikan
-        ctx.restore(); // Mengembalikan status canvas
-      };
-
-      // Tombol Status "AKTIF"
-      ctx.fillStyle = "#16A34A";
-      ctx.fillRect(30, canvas.height - 50, 80, 30);
-      ctx.fillStyle = "#ffffff";
-      ctx.font = "bold 14px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("AKTIF", 70, canvas.height - 30);
-    };
-  };
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import axios from "axios";
+const KtaLayout = ({ hasKTA }: { hasKTA: boolean }) => {
+  const [isRegistered, setIsRegistered] = useState<boolean>(hasKTA);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [kabupatenOptions, setKabupatenOptions] = useState([]);
+  const [rekeningOptions, setRekeningOptions] = useState([]);
 
   useEffect(() => {
-    drawCanvas();
-  }, [ktaData]);
+    // Mendapatkan data kabupaten
+    const fetchKabupaten = async () => {
+      try {
+        const response = await axios.get(
+          "http://localhost:8000/api/kota-kabupaten"
+        ); // Ganti dengan URL backend Anda
+        setKabupatenOptions(response.data);
+      } catch (error) {
+        console.error("Terjadi kesalahan saat mengambil data kabupaten", error);
+      }
+    };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setKtaData((prevData) => ({ ...prevData, [name]: value }));
+    // Mendapatkan data rekening
+    const fetchRekening = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/rek"); // Ganti dengan URL backend Anda
+        setRekeningOptions(response.data);
+      } catch (error) {
+        console.error("Terjadi kesalahan saat mengambil data rekening", error);
+      }
+    };
+
+    // Memanggil kedua fungsi
+    fetchKabupaten();
+    fetchRekening();
+  }, []);
+
+  const handleRegisterClick = () => {
+    setIsRegistered(true);
   };
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    setIsSubmitted(true);
 
-  const downloadKTA = () => {
-    const canvas = canvasRef.current;
-    const link = document.createElement("a");
-    link.download = "Kartu_Tanda_Anggota.png";
-    link.href = canvas.toDataURL();
-    link.click();
+    try {
+      // Kirim data ke backend
+      const response = await axios.post(
+        "http://localhost:8000/api/kta", // Ganti dengan URL endpoint backend Anda
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`, // Ambil token dari localStorage
+          },
+        }
+      );
+
+      console.log(response.data);
+    } catch (error) {
+      console.error(
+        "Terjadi kesalahan:",
+        error.response?.data || error.message
+      );
+      alert("Pendaftaran gagal. Silakan coba lagi.");
+    }
   };
 
   return (
     <>
       <h1 className="font-bold tracking-wider text-xl">KTA</h1>
       <p className="text-[10px] tracking-wide -mt-1">Detail KTA</p>
-      <div className="flex flex-col items-center p-4">
-        <h1 className="font-bold text-2xl mb-4">Kartu Tanda Anggota</h1>
-
-        {/* Canvas untuk KTA */}
-        <canvas
-          ref={canvasRef}
-          width={500}
-          height={300}
-          className="shadow-lg rounded-lg mb-4"
-        ></canvas>
-
-        {/* Tombol Aksi */}
-        <div className="flex gap-4">
+      {!isRegistered ? (
+        // Section jika belum memiliki KTA
+        <div className="w-full bg-[#fffcfc] h-[25rem] flex flex-col items-center justify-center rounded-2xl">
+          <Image
+            src="/images/oops-kta.png"
+            alt="KTA Image"
+            width={200}
+            height={200}
+          />
+          <p className="font-semibold text-2xl tracking-wide mt-4">
+            Oh No !!! Anda Belum Mempunyai KTA
+          </p>
+          <p className="text-[14px] mt-1">
+            Silahkan lakukan pendaftaran terlebih dahulu
+          </p>
           <button
-            onClick={() => setShowEditForm(!showEditForm)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-800"
+            onClick={handleRegisterClick}
+            className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 h-10 hover:bg-red"
           >
-            Edit Data
-          </button>
-          <button
-            onClick={downloadKTA}
-            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-800"
-          >
-            Download Kartu
+            Daftar
           </button>
         </div>
+      ) : isSubmitted ? (
+        // Section jika data berhasil dikirim
+        <div className="w-full bg-[#fffcfc] h-[25rem] flex flex-col items-center justify-center rounded-2xl">
+          <Image
+            src="/images/processing-kta.png"
+            alt="Processing KTA Image"
+            width={200}
+            height={200}
+          />
+          <p className="font-semibold text-2xl tracking-wide mt-4">
+            KTA Masih Diproses...
+          </p>
+        </div>
+      ) : (
+        // Formulir Pendaftaran Anggota
+        <div className="w-full bg-red h-auto flex flex-col items-center rounded-2xl mt-10 p-6">
+          <h2 className="text-white font-semibold text-xl mb-4">
+            Formulir Pendaftaran Anggota
+          </h2>
+          <form
+            className="w-full max-w-none grid grid-cols-2 gap-4"
+            onSubmit={handleFormSubmit}
+          >
+            {/* Input Foto */}
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="formulir_permohonan"
+              >
+                Foto Formulir Permohonan
+              </label>
+              <input
+                type="file"
+                id="formulir_permohonan"
+                name="formulir_permohonan"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
 
-        {/* Form Edit Data */}
-        {showEditForm && (
-          <div className="mt-4 space-y-2">
-            <input
-              type="text"
-              name="nama"
-              value={ktaData.nama}
-              onChange={handleChange}
-              placeholder="Nama Direktur"
-              className="border p-2 rounded w-full"
-            />
-            <input
-              type="text"
-              name="tanggal"
-              value={ktaData.tanggal}
-              onChange={handleChange}
-              placeholder="Masa Berlaku"
-              className="border p-2 rounded w-full"
-            />
-            <input
-              type="text"
-              name="alamat"
-              value={ktaData.alamat}
-              onChange={handleChange}
-              placeholder="Nomor Telepon"
-              className="border p-2 rounded w-full"
-            />
-            <input
-              type="email"
-              name="email"
-              value={ktaData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              className="border p-2 rounded w-full"
-            />
-          </div>
-        )}
-      </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="pernyataan_kebenaran"
+              >
+                Foto Pernyataan Kebenaran
+              </label>
+              <input
+                type="file"
+                id="pernyataan_kebenaran"
+                name="pernyataan_kebenaran"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="pengesahan_menkumham"
+              >
+                Foto Pengesahan MENKUMHAM
+              </label>
+              <input
+                type="file"
+                id="pengesahan_menkumham"
+                name="pengesahan_menkumham"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="akta_pendirian"
+              >
+                Foto Akta Pendirian
+              </label>
+              <input
+                type="file"
+                id="akta_pendirian"
+                name="akta_pendirian"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="akta_perubahan"
+              >
+                Foto Akta Perubahan
+              </label>
+              <input
+                type="file"
+                id="akta_perubahan"
+                name="akta_perubahan"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="npwp_perusahaan"
+              >
+                Foto NPWP Perusahaan
+              </label>
+              <input
+                type="file"
+                id="npwp_perusahaan"
+                name="npwp_perusahaan"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="surat_domisili"
+              >
+                Foto Surat Domisili
+              </label>
+              <input
+                type="file"
+                id="surat_domisili"
+                name="surat_domisili"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="ktp_pengurus"
+              >
+                Foto KTP Pengurus
+              </label>
+              <input
+                type="file"
+                id="ktp_pengurus"
+                name="ktp_pengurus"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label className="text-white text-sm font-medium" htmlFor="logo">
+                Logo
+              </label>
+              <input
+                type="file"
+                id="logo"
+                name="logo"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="foto_direktur"
+              >
+                Foto Direktur
+              </label>
+              <input
+                type="file"
+                id="foto_direktur"
+                name="foto_direktur"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            {/* Kolom Kedua - Input Foto */}
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="npwp_pengurus_akta"
+              >
+                Foto NPWP Pengurus Akta
+              </label>
+              <input
+                type="file"
+                id="npwp_pengurus_akta"
+                name="npwp_pengurus_akta"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="bukti_transfer"
+              >
+                Bukti Transfer
+              </label>
+              <input
+                type="file"
+                id="bukti_transfer"
+                name="bukti_transfer"
+                className="w-full text-white p-2 rounded-md focus:outline-none"
+                accept="image/*"
+                required
+              />
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="rekening_id"
+              >
+                Rekening
+              </label>
+              <select
+                id="rekening_id"
+                name="rekening_id"
+                className="w-full text-black p-2 rounded-md focus:outline-none"
+                required
+              >
+                <option value="" disabled selected>
+                  Pilih Rekening
+                </option>
+                {rekeningOptions.map((rekening) => (
+                  <option key={rekening.id} value={rekening.id}>
+                    {rekening.nama_bank}{" "}
+                    {/* Sesuaikan dengan properti yang relevan */}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-span-2 md:col-span-1">
+              <label
+                className="text-white text-sm font-medium"
+                htmlFor="kabupaten_id"
+              >
+                Kabupaten
+              </label>
+              <select
+                id="kabupaten_id"
+                name="kabupaten_id"
+                className="w-full text-black p-2 rounded-md focus:outline-none"
+                required
+              >
+                <option value="" disabled selected>
+                  Pilih Kabupaten
+                </option>
+                {kabupatenOptions.map((kabupaten) => (
+                  <option key={kabupaten.id} value={kabupaten.id}>
+                    {kabupaten.nama}{" "}
+                    {/* Sesuaikan dengan properti yang relevan */}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="col-span-2">
+              <button
+                type="submit"
+                className="bg-white text-black rounded-md mt-4 p-2 w-full"
+              >
+                Kirim Pendaftaran
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </>
   );
 };
