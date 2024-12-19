@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
+
 const ValidasiKTA = () => {
   const [ktas, setKtas] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
