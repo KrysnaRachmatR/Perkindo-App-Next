@@ -10,7 +10,7 @@ export default function DefaultLayoutUsers({
   children: React.ReactNode;
   hasKTA: boolean;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(hasKTA);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(hasKTA);
 
   return (
     <>
