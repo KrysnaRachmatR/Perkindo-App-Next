@@ -3,223 +3,275 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-
 const ValidasiKTA = () => {
-  const [ktas, setKtas] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [ktas, setKtas] = useState<any[]>([]); // State untuk menyimpan data KTA yang pending
+  const [activeKTAs, setActiveKTAs] = useState<any[]>([]); // State untuk menyimpan data KTA yang aktif
+  const [loading, setLoading] = useState(false); // State untuk loading
+  const [error, setError] = useState<string | null>(null); // State untuk error
+  const [activeTab, setActiveTab] = useState(0);
+  const [detailData, setDetailData] = useState<number | null>(null);
 
   // Ambil token dari localStorage
-  const token = localStorage.getItem("token");
-
-  // Set default header untuk semua request
-  axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-  // Fetch KTA Data
-  const fetchKTAs = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get("http://localhost:8000/api/kta");
-      setKtas(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Gagal memuat data KTA");
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
-  };
+  }, []);
 
-  // Search KTA
-  const handleSearch = async () => {
-    if (!searchTerm.trim()) {
-      fetchKTAs();
-      return;
+
+
+  // Fetch data KTA yang pending (Section 1)
+const fetchKTAs = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await axios.get("http://localhost:8000/api/kta/all-pending");
+    if (response.status === 200) {
+      setKtas(response.data.data || []); // Pastikan response yang diterima sesuai
+    } else {
+      setError("Gagal memuat data KTA pending.");
     }
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await axios.get(
-        `http://localhost:8000/api/kta/search?search=${searchTerm}`
-      );
-      setKtas(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Data tidak ditemukan");
-    } finally {
-      setLoading(false);
+  } catch (err: any) {
+    if (err.response) {
+      // Jika error datang dari server
+      setError(`Kesalahan: ${err.response?.data?.message || "Terjadi kesalahan saat mengambil data."}`);
+    } else {
+      // Jika error datang dari jaringan
+      setError("Tidak dapat terhubung ke server. Periksa koneksi Anda.");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
+
+const fetchActiveKTAs = async () => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await axios.get("http://localhost:8000/api/kta");
+    if (response.status === 200) {
+      console.log(response);
+      setActiveKTAs(response.data || []); // Pastikan response yang diterima sesuai
+    } else {
+      setError("Gagal memuat data KTA aktif.");
+    }
+  } catch (err: any) {
+    if (err.response) {
+      // Jika error datang dari server
+      setError(`Kesalahan: ${err.response?.data?.message || "Terjadi kesalahan saat mengambil data."}`);
+    } else {
+      // Jika error datang dari jaringan
+      setError("Tidak dapat terhubung ke server. Periksa koneksi Anda.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Approve KTA
-  const approveKTA = async (id: number) => {
-    try {
-      await axios.put(`http://localhost:8000/api/kta/approve/${id}`);
-      alert("Berhasil menyetujui KTA");
-      fetchKTAs();
-    } catch (err: any) {
-      alert(`Gagal menyetujui KTA: ${err.response?.data?.message}`);
+  const handleApprove = async (id: number) => {
+    if (confirm("Apakah Anda yakin ingin menyetujui pendaftaran ini?")) {
+      try {
+        await axios.put(`http://localhost:8000/api/kta/approve/${id}`, {
+          status_diterima: "approve", // Menyetujui KTA
+        });
+        alert("Pendaftaran berhasil disetujui!");
+        fetchKTAs(); // Refresh data setelah approve
+        fetchActiveKTAs(); // Refresh data KTA aktif setelah approval
+      } catch (err: any) {
+        alert(err.response?.data?.message || "Gagal menyetujui pendaftaran.");
+      }
     }
   };
 
   // Reject KTA
-  const rejectKTA = async (id: number) => {
-  const komentar = prompt("Masukkan komentar untuk penolakan KTA:");
-  if (!komentar) {
-    alert("Komentar diperlukan untuk penolakan.");
-    return;
-  }
-  try {
-    await axios.put(`http://localhost:8000/api/kta/approve/${id}`, {
-      status_diterima: "rejected",
-      komentar, // Sesuaikan dengan nama yang diharapkan di backend
-    });
-    alert("Berhasil menolak KTA");
-    fetchKTAs();
-  } catch (err: any) {
-    alert(`Gagal menolak KTA: ${err.response?.data?.message}`);
-  }
-};
-
-
-  // Download KTA Files
- const downloadKTAFiles = async (userId) => {  // Gantilah id dengan userId agar lebih jelas
-  try {
-    const token = localStorage.getItem('token'); // Ambil token dari localStorage atau tempat lain
-
-    if (!token) {
-      alert('Token tidak ditemukan! Silakan login kembali.');
-      return;
+  const handleReject = async (id: number) => {
+    const komentar = prompt("Masukkan komentar untuk penolakan (opsional):");
+    if (confirm("Apakah Anda yakin ingin menolak pendaftaran ini?")) {
+      try {
+        await axios.put(`http://localhost:8000/api/kta/approve/${id}`, {
+          status_diterima: "rejected", // Menolak KTA
+          komentar, // Menambahkan komentar jika ditolak
+        });
+        alert("Pendaftaran berhasil ditolak.");
+        fetchKTAs(); // Refresh data setelah reject
+      } catch (err: any) {
+        alert(err.response?.data?.message || "Gagal menolak pendaftaran.");
+      }
     }
+  };
 
-    console.log('Attempting to download KTA files for user: ', userId);
+  // Download KTA
+  const handleDownload = async (userId: number) => {
+    try {
+      const response = await axios.get(`http://localhost:8000/api/download-kta/${userId}`, {
+        responseType: "blob",
+      });
 
-    // Pastikan menggunakan userId pada URL
-    const response = await fetch(`http://localhost:8000/api/download-kta/${userId}`, {  // Menggunakan userId
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // Kirim token di header
-      },
-    });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
 
-    // Mengecek apakah response berhasil (status 200)
-    if (!response.ok) {
-      const errorMessage = await response.json();
-      console.error('Error in downloading file:', errorMessage.message);
-      alert(errorMessage.message || 'Terjadi kesalahan saat mengunduh berkas.');
-      return;
+      const contentDisposition = response.headers["content-disposition"];
+      const filename = contentDisposition
+        ? contentDisposition.split("filename=")[1]?.replace(/"/g, "")
+        : `KTA_${userId}.zip`;
+
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.parentNode?.removeChild(link);
+      alert("File berhasil diunduh!");
+    } catch (err: any) {
+      alert(err.response?.data?.message || "Gagal mengunduh file.");
     }
-
-    // Jika response berhasil, unduh file ZIP
-    const blob = await response.blob();
-    const downloadUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = downloadUrl;
-    a.download = `KTA-${userId}.zip`; // Nama file yang akan diunduh
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-
-    console.log('Download started successfully!');
-  } catch (error) {
-    console.error('Error during file download:', error);
-    alert('Terjadi kesalahan saat mengunduh berkas.');
-  }
-};
-
-
-
-
+  };
 
   useEffect(() => {
-    fetchKTAs();
+    fetchKTAs(); // Ambil KTA pending
+    fetchActiveKTAs(); // Ambil KTA yang sudah disetujui
   }, []);
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold mb-6">Validasi Pendaftaran KTA</h1>
-
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <input
-          type="text"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Cari KTA (Nama Perusahaan, Email, Alamat)"
-          className="border p-2 rounded w-full md:w-2/3"
-        />
+    <div className="container mx-auto px-4 py-6">
+      <h1 className="text-2xl font-bold mb-4">Validasi KTA</h1>
+      <div className="flex mb-3">
         <button
-          onClick={handleSearch}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          Cari
-        </button>
+            onClick={() => setActiveTab(0)}
+          disabled={loading}
+            className={`py-2 px-4 text-sm font-medium ${
+              activeTab === 0
+                ? "border-b-2 border-blue-500 text-blue-500"
+                : "text-gray-500"
+            }`}
+          >
+            pending
+          </button>
+        <button
+            onClick={() => setActiveTab(1)}
+            disabled ={loading}
+            className={`py-2 px-4 text-sm font-medium ${
+              activeTab === 1
+                ? "border-b-2 border-blue-500 text-blue-500"
+                : "text-gray-500"
+            }`}
+          >
+            aktif
+          </button>
       </div>
 
-      {loading ? (
-        <p>Loading data...</p>
-      ) : error ? (
-        <p className="text-red-500">{error}</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full table-auto border-collapse border border-gray-300">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="border border-gray-300 p-2">Nama Perusahaan</th>
-                <th className="border border-gray-300 p-2">Nama Direktur</th>
-                <th className="border border-gray-300 p-2">Email</th>
-                <th className="border border-gray-300 p-2">Status</th>
-                <th className="border border-gray-300 p-2">Diterima</th>
-                <th className="border border-gray-300 p-2">Expired-At</th>
-                <th className="border border-gray-300 p-2">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {ktas.map((kta: any) => (
-                <tr key={kta.id} className="hover:bg-gray-50">
-                  <td className="border border-gray-300 p-2">
-                    {kta.user.nama_perusahaan}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {kta.user.nama_direktur}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {kta.user.email}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {kta.status_diterima || "Pending"}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {kta.tanggal_diterima}
-                  </td>
-                  <td className="border border-gray-300 p-2">
-                    {kta.expired_at}
-                  </td>
-                  <td className="border border-gray-300 p-2 flex gap-2">
+      {/* Section 1: Pending KTA */}
+      <div className={activeTab != 0 ? 'hidden':'block'}>
+        <h2 className="text-xl font-semibold mb-2">KTA Pending</h2>
+        {loading && <p>Loading...</p>}
+        {error && <p className="text-red-500">{error}</p>}
+        <table className="table-auto w-full border-collapse border border-gray-200">
+          <thead>
+            <tr>
+              <th className="border border-gray-200 px-4 py-2">No</th>
+              <th className="border border-gray-200 px-4 py-2">Nama Perusahaan</th>
+              <th className="border border-gray-200 px-4 py-2">Nama Direktur</th>
+              <th className="border border-gray-200 px-4 py-2">Alamat</th>
+              <th className="border border-gray-200 px-4 py-2">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {ktas.length > 0 ? (
+              ktas.map((kta: any, index: number) => (
+                <tr key={kta.id}>
+                  <td className="border border-gray-200 px-4 py-2">{index + 1}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.nama_perusahaan}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.nama_direktur}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.alamat_perusahaan}</td>
+                  <td className="border border-gray-200 px-4 py-2">
                     <button
-                      onClick={() => approveKTA(kta.id)}
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                      onClick={() => handleApprove(kta.id)}
+                      className="bg-green-500 text-white px-4 py-2 rounded mr-2"
                     >
                       Approve
                     </button>
                     <button
-                      onClick={() => rejectKTA(kta.id)}
-                      className="bg-slate-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                      onClick={() => handleReject(kta.id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded mr-2"
                     >
                       Reject
                     </button>
                     <button
-                      onClick={() => downloadKTAFiles(kta.user_id)}
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      onClick={() => handleDownload(kta.user_id)}
+                      className="bg-blue-500 text-white px-4 py-2 rounded"
                     >
                       Download
                     </button>
                   </td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="text-center border border-gray-200 px-4 py-2"
+                >
+                  Tidak ada data KTA pending.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Section 2: Active KTA */}
+      <div className={activeTab != 1 ? 'hidden':'block'}>
+        <h2 className="text-xl font-semibold mb-2">KTA Aktif</h2>
+        <table className="table-auto w-full border-collapse border border-gray-200">
+          <thead>
+            <tr>
+              <th className="border border-gray-200 px-4 py-2">No</th>
+              <th className="border border-gray-200 px-4 py-2">Nama Perusahaan</th>
+              <th className="border border-gray-200 px-4 py-2">Nama Direktur</th>
+              <th className="border border-gray-200 px-4 py-2">Alamat</th>
+              <th className="border border-gray-200 px-4 py-2">Status</th>
+              <th className="border border-gray-200 px-4 py-2">Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {activeKTAs.length > 0 ? (
+              activeKTAs.map((kta: any, index:number)  => (
+                <tr key={kta.id}>
+                  <td className="border border-gray-200 text-center px-4 py-2">{index+1}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.nama_perusahaan}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.nama_direktur}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.alamat_perusahaan}</td>
+                  <td className="border border-gray-200 px-4 py-2">{kta.status_aktif}</td>
+                  <td className="border border-gray-200 px-4 py-2">
+                    <button onClick={() => setDetailData(index)}>Detail</button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td
+                  colSpan={5}
+                  className="text-center border border-gray-200 px-4 py-2"
+                >
+                  Tidak ada KTA yang aktif.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        {activeKTAs.length>0&&detailData!=null?(
+          <>
+          <span>{activeKTAs[detailData].id}</span>
+          <span>{activeKTAs[detailData].nama_perusahaan}</span>
+          <span>{activeKTAs[detailData].nama_direktur}</span>
+          <span>{activeKTAs[detailData].alamat_perusahaan}</span>
+          </>
+        ):(<></>)}
+      </div>
     </div>
   );
 };
