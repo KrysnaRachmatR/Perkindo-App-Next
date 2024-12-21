@@ -1,11 +1,112 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 
 const NonKonstruksiLayout = () => {
   const [isRegistered, setIsRegistered] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [rekeningOptions, setRekeningOptions] = useState<any[]>([]);
+  const [formData, setFormData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [klasifikasis, setKlasifikasis] = useState([]);
+  const [subKlasifikasis, setSubKlasifikasis] = useState([]);
+  const [selectedKlasifikasi, setSelectedKlasifikasi] = useState("");
+  const [selectedSubKlasifikasi, setSelectedSubKlasifikasi] = useState("");
+  const [loadingSubKlasifikasis, setLoadingSubKlasifikasis] = useState(false);
 
+  // Fetch data klasifikasi
+  useEffect(() => {
+    axios
+      .get("http://localhost:8000/api/non-konstruksi/klasifikasis")
+      .then((response) => {
+        console.log(response.data);
+        const klasifikasis = response.data.data;
+
+        if (Array.isArray(klasifikasis)) {
+          setKlasifikasis(klasifikasis);
+        } else {
+          console.error("Data klasifikasis tidak dalam format yang diharapkan");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching klasifikasis:", error);
+      });
+  }, []);
+
+  // Fetch data sub-klasifikasi berdasarkan klasifikasi yang dipilih
+  const handleKlasifikasiChange = (klasifikasiId) => {
+    setSelectedKlasifikasi(klasifikasiId);
+    setSelectedSubKlasifikasi("");
+    setLoadingSubKlasifikasis(true);
+
+    if (klasifikasiId) {
+      axios
+        .get(
+          `http://localhost:8000/api/non-konstruksi/${klasifikasiId}/sub-klasifikasis`
+        )
+        .then((response) => {
+          console.log(response.data);
+          const subKlasifikasis = response.data.data;
+
+          if (Array.isArray(subKlasifikasis)) {
+            setSubKlasifikasis(subKlasifikasis);
+          } else {
+            console.error(
+              "Data sub-klasifikasis tidak dalam format yang diharapkan"
+            );
+          }
+          setLoadingSubKlasifikasis(false);
+        })
+        .catch((error) => {
+          console.error("Error fetching sub-klasifikasis:", error);
+          setLoadingSubKlasifikasis(false);
+        });
+    } else {
+      setSubKlasifikasis([]);
+      setLoadingSubKlasifikasis(false);
+    }
+  };
+
+  useEffect(() => {
+    const fetchRekening = async () => {
+      try {
+        const response = await axios.get("http://localhost:8000/api/rek");
+        setRekeningOptions(response.data);
+      } catch (error) {
+        console.error("Terjadi kesalahan saat mengambil data rekening", error);
+      }
+    };
+
+    fetchRekening();
+  }, []);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.target as HTMLFormElement);
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:8000/api/sbun",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      alert("Pendaftaran berhasil: " + response.data.message);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      alert(
+        "Terjadi kesalahan: " + error.response?.data?.message || error.message
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleRegisterClick = () => {
     setShowModal(true);
   };
@@ -18,20 +119,6 @@ const NonKonstruksiLayout = () => {
   const handleCloseModal = () => {
     setShowModal(false);
   };
-
-  const klasifikasi = [
-    { value: "", label: "Pilih..." },
-    { value: "kontrak_kerja", label: "Kontrak Kerja" },
-    { value: "spk", label: "SPK" },
-    { value: "adendum_kontrak", label: "Adendum Kontrak" },
-  ];
-
-  const subKlasifikasi = [
-    { value: "", label: "Pilih..." },
-    { value: "bast_1", label: "BAST 1" },
-    { value: "bast_2", label: "BAST 2" },
-    { value: "bast_3", label: "BAST 3" },
-  ];
 
   return (
     <>
@@ -76,19 +163,54 @@ const NonKonstruksiLayout = () => {
           </p>
           <hr className="w-full border-t-2 border-gray-300" />
 
-          <form className="w-full max-w-none grid grid-cols-2 gap-4 mt-5">
+          <form
+            className="w-full max-w-none grid grid-cols-2 gap-4 mt-5"
+            onSubmit={handleSubmit}
+          >
             {/* Kolom Kiri - Dokumen Administrasi Badan Usaha */}
             <div className="col-span-2 md:col-span-1">
               <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="AktePerusahaan"
+                className="text-black text-sm font-medium "
+                htmlFor="email_perusahaan"
               >
-                Scan Warna Akte Perusahaan
+                Email Perusahaan
+              </label>
+              <input
+                type="text"
+                id="email_perusahaan"
+                name="email_perusahaan"
+                className="w-full p-2 rounded-md focus:outline-none border-black border-2"
+                placeholder="Masukkan Email Perusahaan"
+                required
+              />
+
+              <label
+                className="text-black text-sm font-medium mt-4 "
+                htmlFor="nomor_hp_penanggung_jawab"
+              >
+                No Hp Penanggung Jawab
+              </label>
+              <input
+                type="text"
+                id="nomor_hp_penanggung_jawab"
+                name="nomor_hp_penanggung_jawab"
+                className="w-full p-2 rounded-md focus:outline-none border-black border-2"
+                placeholder="Masukkan No HP Penanggung Jawab"
+                pattern="\d{1,12}"
+                title="Hanya boleh angka dengan panjang maksimal 11"
+                required
+              />
+
+              <label
+                className="text-black text-sm font-medium mt-4"
+                htmlFor="akta_pendirian"
+              >
+                Scan Warna Akte Pendirian
               </label>
               <input
                 type="file"
-                id="AktePerusahaan"
-                name="AktePerusahaan"
+                id="akta_pendirian"
+                name="akta_pendirian"
                 className="w-full text-black p-2 rounded-md focus:outline-none"
                 accept="image/*"
                 required
@@ -96,43 +218,28 @@ const NonKonstruksiLayout = () => {
 
               <label
                 className="text-black text-sm font-medium mt-4"
-                htmlFor="AktePerubahan"
-              >
-                Scan Warna Akte Perubahan (jika ada)
-              </label>
-              <input
-                type="file"
-                id="AktePerubahan"
-                name="AktePerubahan"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="SKMenkumham"
-              >
-                Scan SK Menkumham
-              </label>
-              <input
-                type="file"
-                id="SKMenkumham"
-                name="SKMenkumham"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="NPWPPerusahaan"
+                htmlFor="npwp_perusahaan"
               >
                 Scan NPWP Perusahaan
               </label>
               <input
                 type="file"
-                id="NPWPPerusahaan"
-                name="NPWPPerusahaan"
+                id="npwp_perusahaan"
+                name="npwp_perusahaan"
+                className="w-full text-black p-2 rounded-md focus:outline-none"
+                accept="image/*"
+              />
+
+              <label
+                className="text-black text-sm font-medium mt-4"
+                htmlFor="ktp_penanggung_jawab"
+              >
+                Scan KTP Penanggung Jawab
+              </label>
+              <input
+                type="file"
+                id="ktp_penanggung_jawab"
+                name="ktp_penanggung_jawab"
                 className="w-full text-black p-2 rounded-md focus:outline-none"
                 accept="image/*"
                 required
@@ -140,29 +247,14 @@ const NonKonstruksiLayout = () => {
 
               <label
                 className="text-black text-sm font-medium mt-4"
-                htmlFor="KTPPengurus"
+                htmlFor="ktp_pemegang_saham"
               >
-                Scan KTP Pengurus (yang tercantum diAkte)
+                Scan KTP Pemegang Saham
               </label>
               <input
                 type="file"
-                id="KTPPengurus"
-                name="KTPPengurus"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="NPWPPengurus"
-              >
-                Scan NPWP Pengurus (yang tercantum diAkte)
-              </label>
-              <input
-                type="file"
-                id="NPWPPengurus"
-                name="NPWPPengurus"
+                id="ktp_pemegang_saham"
+                name="ktp_pemegang_saham"
                 className="w-full text-black p-2 rounded-md focus:outline-none"
                 accept="image/*"
                 required
@@ -172,15 +264,15 @@ const NonKonstruksiLayout = () => {
             {/* Kolom Kanan - Dokumen Tenaga Kerja Konstruksi */}
             <div className="col-span-2 md:col-span-1">
               <label
-                className="text-black text-sm font-medium"
-                htmlFor="Direktur"
+                className="text-black text-sm font-medium mt-4"
+                htmlFor="npwp_pemegang_saham"
               >
-                Foto Direktur
+                Scan NPWP Pemegang Saham
               </label>
               <input
                 type="file"
-                id="Direktur"
-                name="Direktur"
+                id="npwp_pemegang_saham"
+                name="npwp_pemegang_saham"
                 className="w-full text-black p-2 rounded-md focus:outline-none"
                 accept="image/*"
                 required
@@ -188,14 +280,14 @@ const NonKonstruksiLayout = () => {
 
               <label
                 className="text-black text-sm font-medium mt-4"
-                htmlFor="IzinPerusahaan"
+                htmlFor="logo_perusahaan"
               >
-                Scan Izin Perusahaan
+                Scan Logo Perusahaan
               </label>
               <input
                 type="file"
-                id="IzinPerusahaan"
-                name="IzinPerusahaan"
+                id="logo_perusahaan"
+                name="logo_perusahaan"
                 className="w-full text-black p-2 rounded-md focus:outline-none"
                 accept="image/*"
                 required
@@ -203,52 +295,116 @@ const NonKonstruksiLayout = () => {
 
               <label
                 className="text-black text-sm font-medium mt-4"
-                htmlFor="IjazahPenanggungJawab"
+                htmlFor="bukti_transfer"
               >
-                Scan Ijazah Penanggung Jawab
+                Scan Bukti Transfer
               </label>
               <input
                 type="file"
-                id="IjazahPenanggungJawab"
-                name="IjazahPenanggungJawab"
+                id="bukti_transfer"
+                name="bukti_transfer"
                 className="w-full text-black p-2 rounded-md focus:outline-none"
                 accept="image/*"
                 required
               />
 
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="NPWPPenanggungJawab"
-              >
-                Scan NPWP Penanggung Jawab
-              </label>
-              <input
-                type="file"
-                id="NPWPPenanggungJawab"
-                name="NPWPPenanggungJawab"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
+              <div className="col-span-2 md:col-span-1 ">
+                <label
+                  className="text-black text-sm font-medium"
+                  htmlFor="rekening_id"
+                >
+                  Rekening
+                </label>
+                <select
+                  id="rekening_id"
+                  name="rekening_id"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border-black border-2"
+                  required
+                >
+                  <option value="" disabled selected>
+                    Pilih Rekening
+                  </option>
+                  {rekeningOptions.map((rekening) => (
+                    <option key={rekening.id} value={rekening.id}>
+                      {rekening.nama_bank}{" "}
+                      {/* Sesuaikan dengan properti yang relevan */}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="KTPPenanggungJawab"
-              >
-                Scan KTP Penanggung Jawab
-              </label>
-              <input
-                type="file"
-                id="KTPPenanggungJawab"
-                name="KTPPenanggungJawab"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
+              {/* Dropdown Klasifikasi */}
+              <div>
+                <label
+                  htmlFor="non_konstruksi_klasifikasi_id"
+                  style={{ display: "block", margin: "10px 0" }}
+                >
+                  Pilih Klasifikasi:
+                </label>
+                <select
+                  id="non_konstruksi_klasifikasi_id"
+                  name="non_konstruksi_klasifikasi_id"
+                  value={selectedKlasifikasi}
+                  onChange={(e) => handleKlasifikasiChange(e.target.value)}
+                  style={{
+                    padding: "10px",
+                    width: "100%",
+                    marginBottom: "20px",
+                    borderWidth: "2px",
+                    borderColor: "black",
+                    borderStyle: "solid",
+                    borderRadius: "0.375rem",
+                  }}
+                >
+                  <option value="">-- Pilih Klasifikasi --</option>
+                  {klasifikasis.map((klasifikasi) => (
+                    <option key={klasifikasi.id} value={klasifikasi.id}>
+                      {klasifikasi.nama}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Dropdown Sub-Klasifikasi */}
+              <div>
+                <label
+                  htmlFor="non_konstruksi_sub_klasifikasi_id"
+                  style={{ display: "block", margin: "10px 0" }}
+                >
+                  Pilih Sub-Klasifikasi:
+                </label>
+                <select
+                  id="non_konstruksi_sub_klasifikasi_id"
+                  name="non_konstruksi_sub_klasifikasi_id"
+                  value={selectedSubKlasifikasi}
+                  onChange={(e) => setSelectedSubKlasifikasi(e.target.value)}
+                  style={{
+                    padding: "10px",
+                    width: "100%",
+                    marginBottom: "20px",
+                    borderWidth: "2px",
+                    borderColor: "black",
+                    borderStyle: "solid",
+                    borderRadius: "0.375rem",
+                  }}
+                  disabled={!selectedKlasifikasi || loadingSubKlasifikasis}
+                >
+                  <option value="">-- Pilih Sub-Klasifikasi --</option>
+                  {loadingSubKlasifikasis ? (
+                    <option value="">Memuat sub-klasifikasi...</option>
+                  ) : (
+                    subKlasifikasis.map((sub) => (
+                      <option key={sub.id} value={sub.id}>
+                        {sub.nama}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
             </div>
 
             {/* Kolom untuk foto formulir */}
-            <div className="col-span-2 md:col-span-1 mt-4">
+            {/* <div className="col-span-2 md:col-span-1 mt-4">
               <h3 className="text-black font-semibold text-lg mb-2">
                 * DATA LAINNYA
               </h3>
@@ -289,15 +445,18 @@ const NonKonstruksiLayout = () => {
                   </option>
                 ))}
               </select>
-            </div>
+            </div> */}
 
             {/* Kolom untuk tombol kirim */}
             <div className="col-span-2">
               <button
                 type="submit"
-                className="bg-[#333A48] text-white rounded-md mt-4 p-2 w-full"
+                className={`bg-[#333A48] text-white rounded-md mt-4 p-2 w-full${
+                  isLoading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={isLoading}
               >
-                Kirim Pendaftaran
+                {isLoading ? "Mengirim..." : "Daftar Sekarang"}
               </button>
             </div>
           </form>
