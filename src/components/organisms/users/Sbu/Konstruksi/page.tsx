@@ -130,10 +130,10 @@ const KonstruksiLayout = () => {
         // Section jika belum memiliki KTA
         <div className="w-full bg-[#fffcfc] h-[25rem] flex flex-col items-center justify-center rounded-2xl">
           <Image
-            src="/images/oops-kta.png"
+            src="/images/oops.png"
             alt="KTA Image"
-            width={200}
-            height={200}
+            width={300}
+            height={300}
           />
           <p className="font-semibold text-2xl tracking-wide mt-4">
             Oh No !!! Anda Belum Terdaftar
@@ -143,7 +143,7 @@ const KonstruksiLayout = () => {
           </p>
           <button
             onClick={handleRegisterClick}
-            className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 h-10 hover:bg-red"
+            className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4  hover:bg-red"
           >
             Daftar
           </button>
