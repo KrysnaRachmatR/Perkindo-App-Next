@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const ValidasiSBUN = () => {
+const ValidasiSBUS = () => {
   const [sbUs, setSbUs] = useState<any[]>([]); // State untuk menyimpan data SBU yang pending
   const [activeSbUs, setActiveSbUs] = useState<any[]>([]); // State untuk menyimpan data SBU yang aktif
   const [loading, setLoading] = useState(false); // State untuk loading
@@ -25,7 +25,7 @@ const ValidasiSBUN = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get("http://localhost:8000/api/sbun/pending");
+      const response = await axios.get("http://localhost:8000/api/sbus/pending");
       if (response.status === 200) {
         setSbUs(response.data.data || []); // Pastikan response yang diterima sesuai
       } else {
@@ -48,7 +48,7 @@ const ValidasiSBUN = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get("http://localhost:8000/api/sbun/active");
+      const response = await axios.get("http://localhost:8000/api/sbus/active");
       console.log(response.data)
       if (response.status === 200) {
         setActiveSbUs(response.data.data || []); // Pastikan response yang diterima sesuai
@@ -72,7 +72,7 @@ const ValidasiSBUN = () => {
   const handleApprove = async (id: number) => {
     if (confirm("Apakah Anda yakin ingin menyetujui pendaftaran ini?")) {
       try {
-        await axios.put(`http://localhost:8000/api/sbun/${id}/status`, {
+        await axios.put(`http://localhost:8000/api/sbus/${id}/status`, {
           status_diterima: "approve", // Menyetujui SBU
         });
         alert("Pendaftaran berhasil disetujui!");
@@ -89,7 +89,7 @@ const handleReject = async (id: number) => {
   const komentar = prompt("Masukkan komentar untuk penolakan (opsional):");
   if (confirm("Apakah Anda yakin ingin menolak pendaftaran ini?")) {
     try {
-      await axios.put(`http://localhost:8000/api/sbun/${id}/status`, {
+      await axios.put(`http://localhost:8000/api/sbus/${id}/status`, {
         status_diterima: "rejected", // Menolak SBU
         komentar, // Menambahkan komentar jika ditolak
       });
@@ -109,7 +109,7 @@ const handleReject = async (id: number) => {
   // Download SBU
   const handleDownload = async (userId: number) => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/sbun/${userId}/download`, {
+      const response = await axios.get(`http://localhost:8000/api/sbus/${userId}/download`, {
         responseType: "blob",
       });
 
@@ -141,7 +141,7 @@ const handleReject = async (id: number) => {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold mb-4">Validasi SBU Non Konstruksi</h1>
+      <h1 className="text-2xl font-bold mb-4">Validasi SBU Konstruksi</h1>
       <div className="flex mb-3">
         <button
             onClick={() => setActiveTab(0)}
@@ -303,4 +303,4 @@ const handleReject = async (id: number) => {
   );
 };
 
-export default ValidasiSBUN;
+export default ValidasiSBUS;

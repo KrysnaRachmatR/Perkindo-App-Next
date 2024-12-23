@@ -133,8 +133,8 @@ const menuGroups = [
             />
           </svg>
         ),
-        label: "Validasi KTA",
-        route: "/admin/anggota/validasi-reg/sbuKontruksi",
+        label: "Validasi SBU Non-Konstruksi",
+        route: "/admin/anggota/validasi-reg/reg-sbu-non-konstruksi",
       },
       {
         icon: (
@@ -156,8 +156,8 @@ const menuGroups = [
             />
           </svg>
         ),
-        label: "Validasi KTA",
-        route: "/admin/anggota/validasi-reg/sbuNonKonstruksi",
+        label: "Validasi SBU Konstruksi",
+        route: "/admin/anggota/validasi-reg/reg-sbu-konstruksi",
       },
     ],
   },
