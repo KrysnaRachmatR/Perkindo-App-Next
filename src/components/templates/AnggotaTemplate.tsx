@@ -29,7 +29,7 @@ const MainTemplateAnggota: React.FC = () => {
   const fetchData = async () => {
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/sbu-konstruk"
+        "http://localhost:8000/api/detail/all-user"
       );
       setRows(response.data);
     } catch (error) {

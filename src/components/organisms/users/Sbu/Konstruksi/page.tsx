@@ -645,7 +645,7 @@ const KonstruksiLayout = () => {
                   <select
                     id="konstruksi_klasifikasi_id"
                     name="konstruksi_klasifikasi_id"
-                    value={selectedKlasifikasi}
+                    value={selectedSubKlasifikasi}
                     onChange={(e) => handleKlasifikasiChange(e.target.value)}
                     style={{
                       padding: "10px",

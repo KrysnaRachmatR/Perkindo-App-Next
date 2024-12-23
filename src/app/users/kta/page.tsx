@@ -27,7 +27,11 @@ const Kta = () => {
         setUserData({ hasKTA, status_diterima, komentar });
       } catch (error) {
         console.error("Error fetching KTA data:", error);
-        setUserData({ hasKTA: false, status_diterima: null, komentar: null });
+        setUserData({
+          hasKTA: false,
+          status_diterima: null,
+          komentar: null,
+        });
       } finally {
         setLoading(false);
       }
@@ -46,6 +50,7 @@ const Kta = () => {
         hasKTA={userData.hasKTA}
         status_diterima={userData.status_diterima}
         komentar={userData.komentar}
+        kta_file={userData.kta_file}
       />
     </DefaultLayoutUsers>
   );

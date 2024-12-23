@@ -16,7 +16,7 @@ const MainTemplateGaleri = () => {
           throw new Error("Failed to fetch media");
         }
         const data = await response.json();
-        setMedia(data.data);  // Menyimpan data ke state 'media'
+        setMedia(data.data); // Menyimpan data ke state 'media'
       } catch (error) {
         console.error(error);
       }
@@ -65,7 +65,7 @@ const MainTemplateGaleri = () => {
                   ) : (
                     <img
                       className="w-full h-full object-cover"
-                      src={`http://localhost:8000/storage/galeri/${item.id}/${item.gambar}`}  // Perbaiki URL
+                      src={`http://localhost:8000/storage/${item.gambar}`} // Perbaiki URL
                       alt={item.caption || "Galeri"}
                     />
                   )}
@@ -110,7 +110,7 @@ const MainTemplateGaleri = () => {
               ) : (
                 <img
                   className="w-full h-auto object-cover mx-auto"
-                  src={`http://localhost:8000/storage/galeri/${selectedMedia.id}/${selectedMedia.gambar}`} // Perbaiki URL gambar modal
+                  src={`http://localhost:8000/storage/${selectedMedia.gambar}`} // Perbaiki URL gambar modal
                   alt={selectedMedia.caption || "Galeri"}
                 />
               )}
