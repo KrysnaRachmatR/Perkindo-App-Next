@@ -79,7 +79,7 @@ const KtaLayout = ({
 
   // Fungsi untuk menampilkan formulir pendaftaran
   const handleRegisterClick = () => {
-    setIsRegistering(true); // Menampilkan formulir pendaftaran
+    setIsRegistering(true);
   };
 
   return (
@@ -157,6 +157,10 @@ const KtaLayout = ({
                     className="mt-4 mb-6"
                   />
                   <p className="text-2xl font-bold text-red-600">{komentar}</p>
+                  <p className="mt-2 text-[15px] tracking-wide ">
+                    Silahkan Melakukan Pendaftaran Lagi Dengan Data yang Valid
+                  </p>
+
                   <button
                     onClick={handleRegisterClick} // Klik tombol untuk menampilkan formulir
                     className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 hover:bg-red"

@@ -14,11 +14,40 @@ const KonstruksiLayout = () => {
   const [selectedKlasifikasi, setSelectedKlasifikasi] = useState("");
   const [selectedSubKlasifikasi, setSelectedSubKlasifikasi] = useState("");
   const [loadingSubKlasifikasis, setLoadingSubKlasifikasis] = useState(false);
+  const [userData, setUserData] = useState({
+    status_diterima: null,
+    komentar: null,
+  });
+  const [loading, setLoading] = useState(true);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    // Fetch data KTA dari backend
+    const fetchKTAData = async () => {
+      try {
+        const token = localStorage.getItem("token"); // Ambil token dari localStorage atau tempat penyimpanan lainnya
+        const response = await axios.get("http://localhost:8000/api/getSbus", {
+          headers: {
+            Authorization: `Bearer ${token}`, // Tambahkan Bearer Token di header
+          },
+        });
+        const { status_diterima, komentar } = response.data;
+        setUserData({ status_diterima, komentar });
+      } catch (error) {
+        console.error("Error fetching KTA data:", error);
+        setUserData({ status_diterima: null, komentar: null });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchKTAData();
+  }, []);
 
   // Fetch data klasifikasi
   useEffect(() => {
     axios
-      .get("http://localhost:8000/api/klasifikasis")
+      .get("http://localhost:8000/api/klasifikasi")
       .then((response) => {
         console.log(response.data);
         const klasifikasis = response.data.data;
@@ -84,11 +113,12 @@ const KonstruksiLayout = () => {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const formData = new FormData(event.target as HTMLFormElement);
+    setIsSubmitted(true);
     setIsLoading(true);
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/api/sbu",
+        "http://localhost:8000/api/sbus",
         formData,
         {
           headers: {
@@ -121,486 +151,575 @@ const KonstruksiLayout = () => {
     setShowModal(false);
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <>
       <h1 className="font-bold tracking-wider text-xl">SBU Konstruksi</h1>
       <p className="text-[10px] tracking-wide -mt-1">Detail SBU Konstruksi</p>
 
-      {!isRegistered ? (
-        // Section jika belum memiliki KTA
-        <div className="w-full bg-[#fffcfc] h-[25rem] flex flex-col items-center justify-center rounded-2xl">
-          <Image
-            src="/images/oops.png"
-            alt="KTA Image"
-            width={300}
-            height={300}
-          />
-          <p className="font-semibold text-2xl tracking-wide mt-4">
-            Oh No !!! Anda Belum Terdaftar
-          </p>
-          <p className="text-[14px] mt-1">
-            Silahkan lakukan pendaftaran terlebih dahulu
-          </p>
-          <button
-            onClick={handleRegisterClick}
-            className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4  hover:bg-red"
-          >
-            Daftar
-          </button>
-        </div>
-      ) : (
-        // Formulir Pendaftaran Anggota
-        <div
-          className="w-full bg-[#ffff] h-auto flex flex-col rounded-md mt-10 p-6"
-          style={{ boxShadow: "inset 0px 0px 10px rgba(0, 0, 0, 0.10)" }}
-        >
-          <h2 className="text-black font-semibold text-xl mb-4">
-            Pendaftaran SBU Kontruksi
-          </h2>
-          <p className="text-[10px] tracking-wide -mt-4 mb-5">
-            Isi formulir untuk pendaftaran SBU Konstruksi
-          </p>
-          <hr className="w-full border-t-2 border-gray-300" />
-
-          <form
-            className="w-full max-w-none grid grid-cols-2 gap-4 mt-5"
-            onSubmit={handleSubmit}
-          >
-            {/* Kolom Kiri - Dokumen Administrasi Badan Usaha */}
-            <div className="col-span-2 md:col-span-1">
-              <label
-                className="text-black text-sm font-medium "
-                htmlFor="email_perusahaan"
-              >
-                Email Perusahaan
-              </label>
-              <input
-                type="text"
-                id="email_perusahaan"
-                name="email_perusahaan"
-                className="w-full p-2 rounded-md focus:outline-none border-black border-2"
-                placeholder="Masukkan Email Perusahaan"
-                required
+      {/* Jika hasKTA true, cek status_diterima */}
+      {!isRegistered && (
+        <>
+          {/* Cek apakah status_diterima kosong atau null */}
+          {userData.status_diterima === "" ||
+          userData.status_diterima === null ? (
+            <div className="flex flex-col items-center mt-8">
+              <Image
+                src="/images/oops.png" // Ganti dengan path gambar yang sesuai
+                alt="KTA Daftar"
+                width={300}
+                height={300}
+                className="mt-2 mb-4"
               />
-
-              <label
-                className="text-black text-sm font-medium mt-4 "
-                htmlFor="nomor_hp_penanggung_jawab"
+              <p className="font-semibold text-2xl tracking-wide mt-4">
+                Oh No !!! Anda Belum Terdaftar
+              </p>
+              <p className="text-[14px] mt-1">
+                Silahkan lakukan pendaftaran terlebih dahulu
+              </p>
+              <button
+                onClick={handleRegisterClick} // Klik tombol untuk menampilkan formulir
+                className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 hover:bg-red"
               >
-                No Hp Penanggung Jawab
-              </label>
-              <input
-                type="text"
-                id="nomor_hp_penanggung_jawab"
-                name="nomor_hp_penanggung_jawab"
-                className="w-full p-2 rounded-md focus:outline-none border-black border-2"
-                placeholder="Masukkan No HP Penanggung Jawab"
-                pattern="\d{1,12}"
-                title="Hanya boleh angka dengan panjang maksimal 11"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="akta_asosiasi_aktif_masa_berlaku"
-              >
-                Scan Warna Kartu Tanda Anggota Asosisiasi (yang masih berlaku)
-              </label>
-              <input
-                type="file"
-                id="akta_asosiasi_aktif_masa_berlaku"
-                name="akta_asosiasi_aktif_masa_berlaku"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="akta_perusahaan_pendirian"
-              >
-                Scan Warna Akte Pendirian Perusahaan
-              </label>
-              <input
-                type="file"
-                id="akta_perusahaan_pendirian"
-                name="akta_perusahaan_pendirian"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="akta_perubahan"
-              >
-                Scan Warna Akte Perubahan Perusahaan
-              </label>
-              <input
-                type="file"
-                id="akta_perubahan"
-                name="akta_perubahan"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="pengesahan_menkumham"
-              >
-                Scan SK Menkumham
-              </label>
-              <input
-                type="file"
-                id="pengesahan_menkumham"
-                name="pengesahan_menkumham"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="nib_berbasis_resiko"
-              >
-                Scan SK Menkumham (KBLI 2020)
-              </label>
-              <input
-                type="file"
-                id="nib_berbasis_resiko"
-                name="nib_berbasis_resiko"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="ktp_pengurus"
-              >
-                Scan KTP Pengurus
-              </label>
-              <input
-                type="file"
-                id="ktp_pengurus"
-                name="ktp_pengurus"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="npwp_pengurus"
-              >
-                Scan Warna NPWP Pengurus
-              </label>
-              <input
-                type="file"
-                id="npwp_pengurus"
-                name="npwp_pengurus"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="SKK"
-              >
-                Scan SKK
-              </label>
-              <input
-                type="file"
-                id="SKK"
-                name="SKK"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="ijazah_legalisir"
-              >
-                Scan Ijazah Legalisir
-              </label>
-              <input
-                type="file"
-                id="ijazah_legalisir"
-                name="ijazah_legalisir"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
+                Daftar
+              </button>
             </div>
+          ) : (
+            // Jika status_diterima tidak kosong, tampilkan status sesuai nilai status_diterima
+            <>
+              {/* Jika status diterima adalah "approve", tampilkan teks dan gambar KTA active */}
+              {userData.status_diterima === "approve" && (
+                <div className="flex flex-col items-center mt-8">
+                  <p className="text-2xl font-bold text-green-600">
+                    SBU Konstruksi Active
+                  </p>
+                  <Image
+                    src="/images/ktaExample.jpeg"
+                    alt="KTA Active"
+                    width={300}
+                    height={300}
+                    className="mt-4"
+                  />
+                </div>
+              )}
 
-            {/* Kolom Kanan - Dokumen Tenaga Kerja Konstruksi */}
-            <div className="col-span-2 md:col-span-1">
-              {/* <h3 className="text-black font-semibold text-lg mb-2">
+              {/* Jika status diterima adalah "pending", tampilkan teks dan gambar KTA masih diproses */}
+              {userData.status_diterima === "pending" && (
+                <div className="flex flex-col items-center mt-8">
+                  <Image
+                    src="/images/pending.jpeg"
+                    alt="KTA Pending"
+                    width={500}
+                    height={500}
+                    className="mt-4 mb-8"
+                  />
+                  <p className="text-2xl font-bold">
+                    SBU Konstruksi masih diproses...
+                  </p>
+                </div>
+              )}
+
+              {/* Jika status diterima adalah "rejected", tampilkan teks dan gambar KTA ditolak */}
+              {userData.status_diterima === "rejected" && (
+                <div className="flex flex-col items-center mt-8">
+                  <Image
+                    src="/images/update.jpg"
+                    alt="KTA Rejected"
+                    width={300}
+                    height={300}
+                    className="mt-4 mb-6"
+                  />
+                  <p className="text-2xl font-bold text-red-600">
+                    {userData.komentar}
+                  </p>
+                  <p className="mt-2 text-[15px] tracking-wide ">
+                    Silahkan Melakukan Pendaftaran Lagi Dengan Data yang Valid
+                  </p>
+
+                  <button
+                    onClick={handleRegisterClick} // Klik tombol untuk menampilkan formulir
+                    className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 hover:bg-red"
+                  >
+                    Daftar
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </>
+      )}
+
+      {/* Formulir pendaftaran */}
+      {isRegistered &&
+        (isSubmitted ? (
+          // Section jika data berhasil dikirim
+          <div className="w-full bg-[#fffcfc] h-[25rem] flex flex-col items-center justify-center rounded-2xl">
+            <Image
+              src="/images/pending.jpeg"
+              alt="Processing KTA Image"
+              width={200}
+              height={200}
+            />
+            <p className="font-semibold text-2xl tracking-wide mt-4">
+              SBU Konstruksi Masih Diproses...
+            </p>
+          </div>
+        ) : (
+          // Formulir Pendaftaran Anggota
+          <div
+            className="w-full bg-[#ffff] h-auto flex flex-col rounded-md mt-10 p-6"
+            style={{ boxShadow: "inset 0px 0px 10px rgba(0, 0, 0, 0.10)" }}
+          >
+            <h2 className="text-black font-semibold text-xl mb-4">
+              Pendaftaran SBU Konstruksi
+            </h2>
+            <p className="text-[10px] tracking-wide -mt-4 mb-5">
+              Isi formulir untuk pendaftaran SBU Konstruksi
+            </p>
+            <form
+              className="w-full max-w-none grid grid-cols-2 gap-4 mt-5"
+              onSubmit={handleSubmit}
+            >
+              {/* Kolom Kiri - Dokumen Administrasi Badan Usaha */}
+              <div className="col-span-2 md:col-span-1">
+                <label
+                  className="text-black text-sm font-medium "
+                  htmlFor="email_perusahaan"
+                >
+                  Email Perusahaan
+                </label>
+                <input
+                  type="text"
+                  id="email_perusahaan"
+                  name="email_perusahaan"
+                  className="w-full p-2 rounded-md focus:outline-none border-black border-2"
+                  placeholder="Masukkan Email Perusahaan"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4 "
+                  htmlFor="nomor_hp_penanggung_jawab"
+                >
+                  No Hp Penanggung Jawab
+                </label>
+                <input
+                  type="text"
+                  id="nomor_hp_penanggung_jawab"
+                  name="nomor_hp_penanggung_jawab"
+                  className="w-full p-2 rounded-md focus:outline-none border-black border-2"
+                  placeholder="Masukkan No HP Penanggung Jawab"
+                  pattern="\d{1,12}"
+                  title="Hanya boleh angka dengan panjang maksimal 11"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="akta_asosiasi_aktif_masa_berlaku"
+                >
+                  Scan Warna Kartu Tanda Anggota Asosisiasi (yang masih berlaku)
+                </label>
+                <input
+                  type="file"
+                  id="akta_asosiasi_aktif_masa_berlaku"
+                  name="akta_asosiasi_aktif_masa_berlaku"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="akta_perusahaan_pendirian"
+                >
+                  Scan Warna Akte Pendirian Perusahaan
+                </label>
+                <input
+                  type="file"
+                  id="akta_perusahaan_pendirian"
+                  name="akta_perusahaan_pendirian"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="akta_perubahan"
+                >
+                  Scan Warna Akte Perubahan Perusahaan
+                </label>
+                <input
+                  type="file"
+                  id="akta_perubahan"
+                  name="akta_perubahan"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="pengesahan_menkumham"
+                >
+                  Scan SK Menkumham
+                </label>
+                <input
+                  type="file"
+                  id="pengesahan_menkumham"
+                  name="pengesahan_menkumham"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="nib_berbasis_resiko"
+                >
+                  Scan SK Menkumham (KBLI 2020)
+                </label>
+                <input
+                  type="file"
+                  id="nib_berbasis_resiko"
+                  name="nib_berbasis_resiko"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="ktp_pengurus"
+                >
+                  Scan KTP Pengurus
+                </label>
+                <input
+                  type="file"
+                  id="ktp_pengurus"
+                  name="ktp_pengurus"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="npwp_pengurus"
+                >
+                  Scan Warna NPWP Pengurus
+                </label>
+                <input
+                  type="file"
+                  id="npwp_pengurus"
+                  name="npwp_pengurus"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="SKK"
+                >
+                  Scan SKK
+                </label>
+                <input
+                  type="file"
+                  id="SKK"
+                  name="SKK"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="ijazah_legalisir"
+                >
+                  Scan Ijazah Legalisir
+                </label>
+                <input
+                  type="file"
+                  id="ijazah_legalisir"
+                  name="ijazah_legalisir"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+              </div>
+
+              {/* Kolom Kanan - Dokumen Tenaga Kerja Konstruksi */}
+              <div className="col-span-2 md:col-span-1">
+                {/* <h3 className="text-black font-semibold text-lg mb-2">
                 * DOKUMEN TENAGA KERJA KONSTRUKSI
               </h3> */}
 
-              <label className="text-black text-sm font-medium" htmlFor="PJTBU">
-                Scan PJTBU
-              </label>
-              <input
-                type="file"
-                id="PJTBU"
-                name="PJTBU"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="PJKSBU"
-              >
-                Scan PJKSBU
-              </label>
-              <input
-                type="file"
-                id="PJKSBU"
-                name="PJKSBU"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="kop_perusahaan"
-              >
-                Scan Kop Perusahaan
-              </label>
-              <input
-                type="file"
-                id="kop_perusahaan"
-                name="kop_perusahaan"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="foto_pas_direktur"
-              >
-                Foto Direktur
-              </label>
-              <input
-                type="file"
-                id="foto_pas_direktur"
-                name="foto_pas_direktur"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="surat_pernyataan_penanggung_jawab_mutlak"
-              >
-                Scan Surat Penanggung Jawaban Mutlak
-              </label>
-              <input
-                type="file"
-                id="surat_pernyataan_penanggung_jawab_mutlak"
-                name="surat_pernyataan_penanggung_jawab_mutlak"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="surat_pernyataan_SMAP"
-              >
-                Scan Surat Pernyataan SMAP
-              </label>
-              <input
-                type="file"
-                id="surat_pernyataan_SMAP"
-                name="surat_pernyataan_SMAP"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="lampiran_TKK"
-              >
-                Scan Lampiran TKK
-              </label>
-              <input
-                type="file"
-                id="lampiran_TKK"
-                name="lampiran_TKK"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="neraca_keuangan_2_tahun_terakhir"
-              >
-                Scan Neraca Keuangan 2 Tahun Terakhir
-              </label>
-              <input
-                type="file"
-                id="neraca_keuangan_2_tahun_terakhir"
-                name="neraca_keuangan_2_tahun_terakhir"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="akun_OSS"
-              >
-                Scan Akun OSS
-              </label>
-              <input
-                type="file"
-                id="akun_OSS"
-                name="akun_OSS"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <label
-                className="text-black text-sm font-medium mt-4"
-                htmlFor="bukti_transfer"
-              >
-                Scan Bukti Transfer
-              </label>
-              <input
-                type="file"
-                id="bukti_transfer"
-                name="bukti_transfer"
-                className="w-full text-black p-2 rounded-md focus:outline-none"
-                accept="image/*"
-                required
-              />
-
-              <div className="col-span-2 md:col-span-1 ">
                 <label
                   className="text-black text-sm font-medium"
-                  htmlFor="rekening_id"
+                  htmlFor="PJTBU"
                 >
-                  Rekening
+                  Scan PJTBU
                 </label>
-                <select
-                  id="rekening_id"
-                  name="rekening_id"
-                  className="w-full text-black p-2 rounded-md focus:outline-none border-black border-2"
+                <input
+                  type="file"
+                  id="PJTBU"
+                  name="PJTBU"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
                   required
-                >
-                  <option value="" disabled selected>
-                    Pilih Rekening
-                  </option>
-                  {rekeningOptions.map((rekening) => (
-                    <option key={rekening.id} value={rekening.id}>
-                      {rekening.nama_bank}{" "}
-                      {/* Sesuaikan dengan properti yang relevan */}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                />
 
-              {/* Dropdown Klasifikasi */}
-              <div>
                 <label
-                  htmlFor="konstruksi_klasifikasi_id"
-                  style={{ display: "block", margin: "10px 0" }}
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="PJKSBU"
                 >
-                  Pilih Klasifikasi:
+                  Scan PJKSBU
                 </label>
-                <select
-                  id="konstruksi_klasifikasi_id"
-                  name="konstruksi_klasifikasi_id"
-                  value={selectedKlasifikasi}
-                  onChange={(e) => handleKlasifikasiChange(e.target.value)}
-                  style={{
-                    padding: "10px",
-                    width: "100%",
-                    marginBottom: "20px",
-                    borderWidth: "2px",
-                    borderColor: "black",
-                    borderStyle: "solid",
-                    borderRadius: "0.375rem",
-                  }}
-                >
-                  <option value="">-- Pilih Klasifikasi --</option>
-                  {klasifikasis.map((klasifikasi) => (
-                    <option key={klasifikasi.id} value={klasifikasi.id}>
-                      {klasifikasi.nama}
-                    </option>
-                  ))}
-                </select>
-              </div>
+                <input
+                  type="file"
+                  id="PJKSBU"
+                  name="PJKSBU"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
 
-              {/* Dropdown Sub-Klasifikasi */}
-              <div>
                 <label
-                  htmlFor="konstruksi_sub_klasifikasi_id"
-                  style={{ display: "block", margin: "10px 0" }}
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="kop_perusahaan"
                 >
-                  Pilih Sub-Klasifikasi:
+                  Scan Kop Perusahaan
                 </label>
-                <select
-                  id="konstruksi_sub_klasifikasi_id"
-                  name="konstruksi_sub_klasifikasi_id"
-                  value={selectedSubKlasifikasi}
-                  onChange={(e) => setSelectedSubKlasifikasi(e.target.value)}
-                  style={{
-                    padding: "10px",
-                    width: "100%",
-                    marginBottom: "20px",
-                    borderWidth: "2px",
-                    borderColor: "black",
-                    borderStyle: "solid",
-                    borderRadius: "0.375rem",
-                  }}
-                  disabled={!selectedKlasifikasi || loadingSubKlasifikasis}
+                <input
+                  type="file"
+                  id="kop_perusahaan"
+                  name="kop_perusahaan"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="foto_pas_direktur"
                 >
-                  <option value="">-- Pilih Sub-Klasifikasi --</option>
-                  {loadingSubKlasifikasis ? (
-                    <option value="">Memuat sub-klasifikasi...</option>
-                  ) : (
-                    subKlasifikasis.map((sub) => (
-                      <option key={sub.id} value={sub.id}>
-                        {sub.nama}
+                  Foto Direktur
+                </label>
+                <input
+                  type="file"
+                  id="foto_pas_direktur"
+                  name="foto_pas_direktur"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="surat_pernyataan_penanggung_jawab_mutlak"
+                >
+                  Scan Surat Penanggung Jawaban Mutlak
+                </label>
+                <input
+                  type="file"
+                  id="surat_pernyataan_penanggung_jawab_mutlak"
+                  name="surat_pernyataan_penanggung_jawab_mutlak"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="surat_pernyataan_SMAP"
+                >
+                  Scan Surat Pernyataan SMAP
+                </label>
+                <input
+                  type="file"
+                  id="surat_pernyataan_SMAP"
+                  name="surat_pernyataan_SMAP"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="lampiran_TKK"
+                >
+                  Scan Lampiran TKK
+                </label>
+                <input
+                  type="file"
+                  id="lampiran_TKK"
+                  name="lampiran_TKK"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="neraca_keuangan_2_tahun_terakhir"
+                >
+                  Scan Neraca Keuangan 2 Tahun Terakhir
+                </label>
+                <input
+                  type="file"
+                  id="neraca_keuangan_2_tahun_terakhir"
+                  name="neraca_keuangan_2_tahun_terakhir"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="akun_OSS"
+                >
+                  Scan Akun OSS
+                </label>
+                <input
+                  type="file"
+                  id="akun_OSS"
+                  name="akun_OSS"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <label
+                  className="text-black text-sm font-medium mt-4"
+                  htmlFor="bukti_transfer"
+                >
+                  Scan Bukti Transfer
+                </label>
+                <input
+                  type="file"
+                  id="bukti_transfer"
+                  name="bukti_transfer"
+                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  accept="image/*"
+                  required
+                />
+
+                <div className="col-span-2 md:col-span-1 ">
+                  <label
+                    className="text-black text-sm font-medium"
+                    htmlFor="rekening_id"
+                  >
+                    Rekening
+                  </label>
+                  <select
+                    id="rekening_id"
+                    name="rekening_id"
+                    className="w-full text-black p-2 rounded-md focus:outline-none border-black border-2"
+                    required
+                  >
+                    <option value="" disabled selected>
+                      Pilih Rekening
+                    </option>
+                    {rekeningOptions.map((rekening) => (
+                      <option key={rekening.id} value={rekening.id}>
+                        {rekening.nama_bank}{" "}
+                        {/* Sesuaikan dengan properti yang relevan */}
                       </option>
-                    ))
-                  )}
-                </select>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dropdown Klasifikasi */}
+                <div>
+                  <label
+                    htmlFor="konstruksi_klasifikasi_id"
+                    style={{ display: "block", margin: "10px 0" }}
+                  >
+                    Pilih Klasifikasi:
+                  </label>
+                  <select
+                    id="konstruksi_klasifikasi_id"
+                    name="konstruksi_klasifikasi_id"
+                    value={selectedKlasifikasi}
+                    onChange={(e) => handleKlasifikasiChange(e.target.value)}
+                    style={{
+                      padding: "10px",
+                      width: "100%",
+                      marginBottom: "20px",
+                      borderWidth: "2px",
+                      borderColor: "black",
+                      borderStyle: "solid",
+                      borderRadius: "0.375rem",
+                    }}
+                  >
+                    <option value="">-- Pilih Klasifikasi --</option>
+                    {klasifikasis.map((klasifikasi) => (
+                      <option key={klasifikasi.id} value={klasifikasi.id}>
+                        {klasifikasi.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Dropdown Sub-Klasifikasi */}
+                <div>
+                  <label
+                    htmlFor="konstruksi_sub_klasifikasi_id"
+                    style={{ display: "block", margin: "10px 0" }}
+                  >
+                    Pilih Sub-Klasifikasi:
+                  </label>
+                  <select
+                    id="konstruksi_sub_klasifikasi_id"
+                    name="konstruksi_sub_klasifikasi_id"
+                    value={selectedSubKlasifikasi}
+                    onChange={(e) => setSelectedSubKlasifikasi(e.target.value)}
+                    style={{
+                      padding: "10px",
+                      width: "100%",
+                      marginBottom: "20px",
+                      borderWidth: "2px",
+                      borderColor: "black",
+                      borderStyle: "solid",
+                      borderRadius: "0.375rem",
+                    }}
+                    disabled={!selectedKlasifikasi || loadingSubKlasifikasis}
+                  >
+                    <option value="">-- Pilih Sub-Klasifikasi --</option>
+                    {loadingSubKlasifikasis ? (
+                      <option value="">Memuat sub-klasifikasi...</option>
+                    ) : (
+                      subKlasifikasis.map((sub) => (
+                        <option key={sub.id} value={sub.id}>
+                          {sub.nama}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
               </div>
-            </div>
 
-            {/* Kolom untuk tombol kirim */}
-            <div className="col-span-2">
-              <button
-                type="submit"
-                className={`bg-[#333A48] text-white rounded-md mt-4 p-2 w-full${
-                  isLoading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={isLoading}
-              >
-                {isLoading ? "Mengirim..." : "Daftar Sekarang"}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
+              {/* Kolom untuk tombol kirim */}
+              <div className="col-span-2">
+                <button
+                  type="submit"
+                  className={`bg-[#333A48] text-white rounded-md mt-4 p-2 w-full${
+                    isLoading ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Mengirim..." : "Daftar Sekarang"}
+                </button>
+              </div>
+            </form>
+          </div>
+        ))}
 
-      {/* Modal Persyaratan */}
       {showModal && (
         <div
           className="fixed inset-0 flex  items-center justify-center bg-black bg-opacity-50 transition-opacity duration-300"
