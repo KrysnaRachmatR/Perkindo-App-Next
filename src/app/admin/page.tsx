@@ -10,6 +10,7 @@ export default function Home() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
     if (!token) {
       router.push("/login");
     } else {
