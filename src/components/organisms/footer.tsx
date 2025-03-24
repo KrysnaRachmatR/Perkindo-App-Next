@@ -38,7 +38,7 @@ const Footer: React.FC = () => {
               </Link>
             </li>
             <li>
-              <Link href="/profil" className=" hover:text-gray-400">
+              <Link href="/profile" className=" hover:text-gray-400">
                 Profil
               </Link>
             </li>
@@ -100,11 +100,11 @@ const Footer: React.FC = () => {
               height={24}
               className="mr-2"
             />
-            <p className="text-sm">Perkindo Call - 123456</p>
+            <p className="text-sm">BAPELDA - 082335424547</p>
           </div>
           <div className="flex space-x-4">
             <a
-              href="https://facebook.com"
+              href="https://facebook/perkindo_kalbar/.com"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-full w-8 h-8 flex items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
@@ -117,7 +117,7 @@ const Footer: React.FC = () => {
               />
             </a>
             <a
-              href="https://instagram.com"
+              href="https://www.instagram.com/perkindo_kalbar/"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-full w-8 h-8 flex items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
@@ -130,7 +130,7 @@ const Footer: React.FC = () => {
               />
             </a>
             <a
-              href="https://linkedin.com"
+              href="https://linkedin/perkindo_kalbar/.com"
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-full w-8 h-8 flex items-center justify-center drop-shadow-[0_4px_12px_rgba(0,0,0,0.25)]"
