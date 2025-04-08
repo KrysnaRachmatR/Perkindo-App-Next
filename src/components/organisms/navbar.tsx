@@ -194,7 +194,7 @@ const Navbar = () => {
             <a href="/layanan" className={getLinkClassName("/layanan")}>
               Layanan
             </a>
-            <a href="/anggota" className={getLinkClassName("/anggota")}>
+            <a href="/members" className={getLinkClassName("/members")}>
               Anggota
             </a>
             <a href="/contact" className={getLinkClassName("/contact")}>
@@ -279,7 +279,7 @@ const Navbar = () => {
               Layanan
             </a>
             <a
-              href="/anggota"
+              href="/members"
               className="text-white block hover:bg-white hover:text-black rounded-lg px-3 py-2"
             >
               Anggota
