@@ -7,7 +7,7 @@ const LayananSectionOrganism = () => (
     style={{ height: "40rem" }}
   >
     <LayananText />
-    <ButtonWithTextMolecule text="Pelajari Lebih Lanjut" />
+    {/* <ButtonWithTextMolecule text="Pelajari Lebih Lanjut" /> */}
   </section>
 );
 

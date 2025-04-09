@@ -49,10 +49,10 @@ const MainTemplateGaleri = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {(media || []).map((item) => (
               <div
-                key={item.id}
-                className="relative group cursor-pointer hover:shadow-lg hover:shadow-black/50 transition-shadow duration-300"
-                onClick={() => openModal(item)}
-              >
+              key={item.id}
+              className="relative group cursor-pointer transition-all duration-300 ease-in-out transform hover:scale-[1.02] hover:shadow-lg hover:shadow-black/50"
+              onClick={() => openModal(item)}
+             >            
                 <div className="p-0 h-64 flex items-center justify-center">
                   {item.media_type === "VIDEO" ? (
                     <video
@@ -70,7 +70,7 @@ const MainTemplateGaleri = () => {
                     />
                   )}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 backdrop-blur-md group-hover:bg-opacity-75 transition-all duration-500 ease-in-out p-2">
+                    <div className="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 backdrop-blur-md transition-all duration-500 ease-in-out group-hover:bg-opacity-70 group-hover:translate-y-0 translate-y-4">
                       <span className="text-white text-sm md:text-xl lg:text-sm font-bold z-10 max-w-full w-full break-words">
                         {(() => {
                           const caption = item.caption || "Gambar";

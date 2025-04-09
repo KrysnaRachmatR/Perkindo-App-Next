@@ -38,7 +38,7 @@ const MembershipRequirements = () => {
               <span className="block">KARTU TANDA</span>
               <span className="block">ANGGOTA</span>
             </h1>
-            <ButtonWithTextMolecule text="Daftar Anggota" />
+            <ButtonWithTextMolecule text="Daftar Anggota" route="/login" />
           </div>
 
           {/* Kolom kanan */}

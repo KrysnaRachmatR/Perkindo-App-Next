@@ -7,7 +7,7 @@ const GaleriSectionOrganism = () => (
     style={{ height: "40rem" }}
   >
     <GaleriText />
-    <ButtonWithTextMolecule text="Pelajari Lebih Lanjut" />
+    {/* <ButtonWithTextMolecule text="Pelajari Lebih Lanjut" /> */}
   </section>
 );
 

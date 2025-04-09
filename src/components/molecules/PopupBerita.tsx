@@ -20,7 +20,7 @@ export default function PopupBerita({
 }: PopupBeritaProps) {
   // Batasi caption hanya 10 kalimat, jika lebih tambahkan fitur scroll
   const sentences = content.split(".");
-  const limitedContent = sentences.slice(0, 10).join(".") + (sentences.length > 10 ? "." : "");
+  const limitedContent = sentences.slice(0, 10).join(".") + (sentences.length > 10 ? "..." : "");
   const isScrollable = sentences.length > 10;
 
   return (
@@ -48,8 +48,8 @@ export default function PopupBerita({
         </div>
 
         {/* Informasi Berita */}
-        {/* <TextBerita content={time} className="text-xs sm:text-sm text-red-500" /> */}
-        {/* <TextBerita content={title} className="text-base sm:text-lg font-bold mb-2 text-left" /> */}
+        <TextBerita content={time} className="text-xs sm:text-sm text-red-500" />
+        <TextBerita content={title} className="text-base sm:text-lg font-bold mb-2 text-left" />
 
         {/* Konten Berita (Scroll jika panjang) */}
         <div className={`overflow-y-auto text-gray-600 leading-relaxed ${isScrollable ? "max-h-32 sm:max-h-40" : ""}`}>
