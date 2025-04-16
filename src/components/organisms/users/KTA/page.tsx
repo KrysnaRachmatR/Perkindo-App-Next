@@ -3,83 +3,117 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-const KtaLayout = ({
-  hasKTA,
-  status_diterima,
-  komentar,
-}: {
+// Definisikan tipe untuk KTA
+interface KtaProps {
   hasKTA: boolean;
-  status_diterima: string; // status bisa "approve", "pending", atau "rejected"
-  komentar: string;
-}) => {
+  status_diterima: string | null; // status bisa "approve", "pending", "rejected", atau null
+  komentar: string | null;
+}
+
+// Tipe data untuk opsi select
+interface KabupatenOption {
+  id: number;
+  nama: string;
+}
+
+interface RekeningOption {
+  id: number;
+  nama_bank: string;
+  nomor_rekening: string;
+}
+
+const KtaLayout = ({ hasKTA, status_diterima, komentar }: KtaProps) => {
   const [isRegistered, setIsRegistered] = useState<boolean>(hasKTA);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [kabupatenOptions, setKabupatenOptions] = useState<any[]>([]);
-  const [rekeningOptions, setRekeningOptions] = useState<any[]>([]);
-  const [isAccepted, setIsAccepted] = useState(false);
-  const [isRejected, setIsRejected] = useState(false);
+  const [kabupatenOptions, setKabupatenOptions] = useState<KabupatenOption[]>([]);
+  const [rekeningOptions, setRekeningOptions] = useState<RekeningOption[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false); // State untuk menampilkan formulir
 
+  // Base URL untuk API
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+
   useEffect(() => {
-    // Mendapatkan data kabupaten dan rekening
-    const fetchKabupaten = async () => {
-      try {
-        const response = await axios.get(
-          "http://localhost:8000/api/kota-kabupaten"
-        );
-        setKabupatenOptions(response.data);
-      } catch (error) {
-        console.error("Terjadi kesalahan saat mengambil data kabupaten", error);
-      }
-    };
+    // Mendapatkan data kabupaten dan rekening jika form registrasi ditampilkan
+    if (isRegistering) {
+      fetchDataOptions();
+    }
+  }, [isRegistering]);
 
-    const fetchRekening = async () => {
-      try {
-        const response = await axios.get("http://localhost:8000/api/rek");
-        setRekeningOptions(response.data);
-      } catch (error) {
-        console.error("Terjadi kesalahan saat mengambil data rekening", error);
-      }
-    };
+  // Function untuk fetch data options (kabupaten dan rekening)
+  const fetchDataOptions = async () => {
+    setIsLoading(true);
+    try {
+      // Menggunakan Promise.all untuk fetch data paralel
+      const [kabupatenResponse, rekeningResponse] = await Promise.all([
+        axios.get(`${API_URL}/kota-kabupaten`),
+        axios.get(`${API_URL}/rek`)
+      ]);
 
-    fetchKabupaten();
-    fetchRekening();
-  }, []);
+      setKabupatenOptions(kabupatenResponse.data);
+      setRekeningOptions(rekeningResponse.data);
+    } catch (error) {
+      console.error("Terjadi kesalahan saat mengambil data:", error);
+      setErrorMessage("Gagal memuat data. Silakan coba lagi.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.target as HTMLFormElement);
-    setIsSubmitted(true);
-
+    setIsLoading(true);
+    setErrorMessage(null);
+    
+    const formData = new FormData(event.currentTarget);
+    
     try {
+      // Dapatkan token dari localStorage
+      const token = localStorage.getItem("token");
+      
+      if (!token) {
+        throw new Error("Token tidak ditemukan. Silakan login kembali.");
+      }
+      
       const response = await axios.post(
-        "http://localhost:8000/api/kta",
+        `${API_URL}/kta`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Authorization": `Bearer ${token}`
           },
         }
       );
-
-      if (response.data.status === "approve") {
-        setIsAccepted(true);
-      } else if (response.data.status === "rejected") {
-        setIsRejected(true);
+      
+      if (response.data.success) {
+        setIsSubmitted(true);
+        // Setelah berhasil submit, update status berdasarkan respons dari server
+        if (response.data.status === "approve") {
+          setIsRegistered(true);
+        }
+      } else {
+        setErrorMessage(response.data.message || "Terjadi kesalahan saat mengirim data.");
       }
     } catch (error) {
-      console.error(
-        "Terjadi kesalahan:",
-        error.response?.data || error.message
-      );
-      alert("Pendaftaran gagal. Silakan coba lagi.");
+      console.error("Error:", error);
+      if (error.response?.data?.message) {
+        setErrorMessage(error.response.data.message);
+      } else if (error.message) {
+        setErrorMessage(error.message);
+      } else {
+        setErrorMessage("Pendaftaran gagal. Silakan coba lagi.");
+      }
+    } finally {
+      setIsLoading(false);
     }
   };
 
   // Fungsi untuk menampilkan formulir pendaftaran
   const handleRegisterClick = () => {
     setIsRegistering(true);
+    setErrorMessage(null);
   };
 
   return (
@@ -87,14 +121,28 @@ const KtaLayout = ({
       <h1 className="font-bold tracking-wider text-xl">KTA</h1>
       <p className="text-[10px] tracking-wide -mt-1">Detail KTA</p>
 
-      {/* Jika hasKTA true, cek status_diterima */}
+      {/* Tampilkan error message jika ada */}
+      {errorMessage && (
+        <div className="bg-red-100 text-red-700 p-3 rounded-md mt-3">
+          {errorMessage}
+        </div>
+      )}
+
+      {/* Jika sedang loading */}
+      {isLoading && (
+        <div className="flex justify-center mt-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+        </div>
+      )}
+
+      {/* Jika tidak sedang proses registrasi, tampilkan status KTA */}
       {!isRegistering && (
         <>
           {/* Cek apakah status_diterima kosong atau null */}
-          {status_diterima === "" || status_diterima === null ? (
+          {!status_diterima || status_diterima === "" ? (
             <div className="flex flex-col items-center mt-8">
               <Image
-                src="/images/oops.png" // Ganti dengan path gambar yang sesuai
+                src="/images/oops.png"
                 alt="KTA Daftar"
                 width={300}
                 height={300}
@@ -107,8 +155,9 @@ const KtaLayout = ({
                 Silahkan lakukan pendaftaran terlebih dahulu
               </p>
               <button
-                onClick={handleRegisterClick} // Klik tombol untuk menampilkan formulir
-                className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 hover:bg-red"
+                onClick={handleRegisterClick}
+                className="bg-black text-white text-center py-2 px-4 rounded-md mt-4 hover:bg-red-600 transition-colors"
+                disabled={isLoading}
               >
                 Daftar
               </button>
@@ -156,14 +205,15 @@ const KtaLayout = ({
                     height={300}
                     className="mt-4 mb-6"
                   />
-                  <p className="text-2xl font-bold text-red-600">{komentar}</p>
-                  <p className="mt-2 text-[15px] tracking-wide ">
+                  <p className="text-2xl font-bold text-red-600">{komentar || "Pendaftaran ditolak"}</p>
+                  <p className="mt-2 text-[15px] tracking-wide">
                     Silahkan Melakukan Pendaftaran Lagi Dengan Data yang Valid
                   </p>
 
                   <button
-                    onClick={handleRegisterClick} // Klik tombol untuk menampilkan formulir
-                    className="bg-black text-white text-center items-center justify-center w-20 rounded-md mt-4 hover:bg-red"
+                    onClick={handleRegisterClick}
+                    className="bg-black text-white text-center py-2 px-4 rounded-md mt-4 hover:bg-red-600 transition-colors"
+                    disabled={isLoading}
                   >
                     Daftar
                   </button>
@@ -175,8 +225,8 @@ const KtaLayout = ({
       )}
 
       {/* Formulir pendaftaran */}
-      {isRegistering &&
-        (isSubmitted ? (
+      {isRegistering && (
+        isSubmitted ? (
           // Section jika data berhasil dikirim
           <div className="w-full bg-[#fffcfc] h-[25rem] flex flex-col items-center justify-center rounded-2xl">
             <Image
@@ -201,6 +251,7 @@ const KtaLayout = ({
             <p className="text-[10px] tracking-wide -mt-4 mb-5">
               Isi formulir untuk pendaftaran KTA
             </p>
+            
             <form
               className="w-full max-w-none grid grid-cols-2 gap-4"
               onSubmit={handleFormSubmit}
@@ -217,7 +268,7 @@ const KtaLayout = ({
                   type="file"
                   id="formulir_permohonan"
                   name="formulir_permohonan"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
@@ -234,11 +285,12 @@ const KtaLayout = ({
                   type="file"
                   id="pernyataan_kebenaran"
                   name="pernyataan_kebenaran"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -250,11 +302,12 @@ const KtaLayout = ({
                   type="file"
                   id="pengesahan_menkumham"
                   name="pengesahan_menkumham"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -266,11 +319,12 @@ const KtaLayout = ({
                   type="file"
                   id="akta_pendirian"
                   name="akta_pendirian"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -282,11 +336,12 @@ const KtaLayout = ({
                   type="file"
                   id="akta_perubahan"
                   name="akta_perubahan"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -298,11 +353,12 @@ const KtaLayout = ({
                   type="file"
                   id="npwp_perusahaan"
                   name="npwp_perusahaan"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -314,11 +370,12 @@ const KtaLayout = ({
                   type="file"
                   id="surat_domisili"
                   name="surat_domisili"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -330,11 +387,12 @@ const KtaLayout = ({
                   type="file"
                   id="ktp_pengurus"
                   name="ktp_pengurus"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -346,11 +404,12 @@ const KtaLayout = ({
                   type="file"
                   id="logo"
                   name="logo"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -362,11 +421,12 @@ const KtaLayout = ({
                   type="file"
                   id="foto_direktur"
                   name="foto_direktur"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               {/* Kolom Kedua - Input Foto */}
               <div className="col-span-2 md:col-span-1">
                 <label
@@ -379,11 +439,12 @@ const KtaLayout = ({
                   type="file"
                   id="npwp_pengurus_akta"
                   name="npwp_pengurus_akta"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -395,11 +456,12 @@ const KtaLayout = ({
                   type="file"
                   id="bukti_transfer"
                   name="bukti_transfer"
-                  className="w-full text-black p-2 rounded-md focus:outline-none"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   accept="image/*"
                   required
                 />
               </div>
+              
               <div className="col-span-2 md:col-span-1">
                 <label
                   className="text-black text-sm font-medium"
@@ -410,16 +472,13 @@ const KtaLayout = ({
                 <select
                   id="rekening_id"
                   name="rekening_id"
-                  className="w-full text-black p-2 rounded-md focus:outline-none border-black border-2"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   required
                 >
-                  <option value="" disabled selected>
-                    Pilih Rekening
-                  </option>
+                  <option value="">Pilih Rekening</option>
                   {rekeningOptions.map((rekening) => (
                     <option key={rekening.id} value={rekening.id}>
-                      {rekening.nama_bank}{" "}
-                      {/* Sesuaikan dengan properti yang relevan */}
+                      {rekening.nama_bank} - {rekening.nomor_rekening}
                     </option>
                   ))}
                 </select>
@@ -435,31 +494,39 @@ const KtaLayout = ({
                 <select
                   id="kabupaten_id"
                   name="kabupaten_id"
-                  className="w-full text-black p-2 rounded-md focus:outline-none border-black border-2"
+                  className="w-full text-black p-2 rounded-md focus:outline-none border border-gray-300"
                   required
                 >
-                  <option value="" disabled selected>
-                    Pilih Kabupaten
-                  </option>
+                  <option value="">Pilih Kabupaten</option>
                   {kabupatenOptions.map((kabupaten) => (
                     <option key={kabupaten.id} value={kabupaten.id}>
-                      {kabupaten.nama}{" "}
-                      {/* Sesuaikan dengan properti yang relevan */}
+                      {kabupaten.nama}
                     </option>
                   ))}
                 </select>
               </div>
-              <div className="col-span-2">
+              
+              <div className="col-span-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRegistering(false)}
+                  className="bg-gray-300 text-black rounded-md mt-4 p-2 flex-1"
+                  disabled={isLoading}
+                >
+                  Batal
+                </button>
                 <button
                   type="submit"
-                  className="bg-black text-white rounded-md mt-4 p-2 w-full"
+                  className="bg-black text-white rounded-md mt-4 p-2 flex-1 hover:bg-gray-800 transition-colors"
+                  disabled={isLoading}
                 >
-                  Kirim Pendaftaran
+                  {isLoading ? 'Mengirim...' : 'Kirim Pendaftaran'}
                 </button>
               </div>
             </form>
           </div>
-        ))}
+        )
+      )}
     </>
   );
 };
