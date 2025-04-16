@@ -6,45 +6,38 @@ import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
 
 const SignUpLayout = () => {
   const [signIn, toggle] = useState(true);
-  // State untuk Sign In
   const [signInUsername, setSignInUsername] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
-  // State untuk Sign Up
   const [nama_perusahaan, setNamaPerusahaan] = useState("");
   const [nama_direktur, setNamaDirektur] = useState("");
   const [nama_penanggung_jawab, setNamaPJ] = useState("");
   const [alamat_perusahaan, setAlamatPerusahaan] = useState("");
   const [signUpUsername, setSignUpUsername] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
-  const [signUpPasswordConfirmation, setSignUpPasswordConfirmation] =
-    useState("");
+  const [signUpPasswordConfirmation, setSignUpPasswordConfirmation] = useState("");
 
-  // Menambahkan state untuk menandai apakah sedang mengirimkan form
   const [isSubmittingSignIn, setIsSubmittingSignIn] = useState(false);
   const [isSubmittingSignUp, setIsSubmittingSignUp] = useState(false);
-
   const [errorSignIn, setErrorSignIn] = useState<string | null>(null);
   const [errorSignUp, setErrorSignUp] = useState<string | null>(null);
   const [successSignUp, setSuccessSignUp] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     const role = localStorage.getItem("role");
-
     if (token) {
-      if (role === "admin") {
-        router.push("/admin"); // Redirect ke halaman admin jika role admin
-      } else if (role === "user") {
-        router.push("/users"); // Redirect ke halaman user jika role user
-      }
+      if (role === "admin") router.push("/admin");
+      else if (role === "user") router.push("/users");
     }
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!signInUsername || !signInPassword) {
       setErrorSignIn("Email dan password harus diisi.");
       return;
@@ -57,34 +50,17 @@ const SignUpLayout = () => {
         password: signInPassword,
       });
 
-      if (response.data && response.data.token && response.data.user) {
-        // Simpan token dan role di localStorage
+      if (response.data?.token && response.data?.user) {
         localStorage.setItem("token", response.data.token);
-
-        // Cek apakah user adalah admin atau anggota
-        const role = response.data.user.hasOwnProperty("username")
-          ? "admin"
-          : "user";
+        const role = response.data.user.username ? "admin" : "user";
         localStorage.setItem("role", role);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-
-        // Redirect sesuai role
-        if (role === "admin") {
-          router.push("/admin");
-        } else if (role === "user") {
-          router.push("/users/kta");
-        }
+        router.push(role === "admin" ? "/admin" : "/users/kta");
       } else {
         setErrorSignIn("Login gagal. Silakan coba lagi.");
       }
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setErrorSignIn(
-          err.response.data.message || "Terjadi kesalahan. Silakan coba lagi."
-        );
-      } else {
-        setErrorSignIn("Terjadi kesalahan. Silakan coba lagi.");
-      }
+    } catch (err: any) {
+      setErrorSignIn(err.response?.data?.message || "Terjadi kesalahan.");
     } finally {
       setIsSubmittingSignIn(false);
     }
@@ -93,15 +69,8 @@ const SignUpLayout = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (
-      !nama_perusahaan ||
-      !nama_direktur ||
-      !nama_penanggung_jawab ||
-      !alamat_perusahaan ||
-      !signUpUsername ||
-      !signUpPassword
-    ) {
-      setErrorSignUp("Semua field harus diisi");
+    if (!nama_perusahaan || !nama_direktur || !nama_penanggung_jawab || !alamat_perusahaan || !signUpUsername || !signUpPassword || !signUpPasswordConfirmation) {
+      setErrorSignUp("Semua field harus diisi.");
       return;
     }
 
@@ -118,10 +87,9 @@ const SignUpLayout = () => {
       });
 
       if (response.status === 201) {
-        setSuccessSignUp("Pendaftaran berhasil! Silahkan login");
+        setSuccessSignUp("Pendaftaran berhasil! Silakan login.");
         setShowPopup(true);
         setErrorSignUp(null);
-        // Reset Form
         setNamaPerusahaan("");
         setNamaDirektur("");
         setNamaPJ("");
@@ -130,22 +98,14 @@ const SignUpLayout = () => {
         setSignUpPassword("");
         setSignUpPasswordConfirmation("");
       } else {
-        setErrorSignUp("Pendaftaran gagal. Silahkan coba lagi");
+        setErrorSignUp("Pendaftaran gagal. Silakan coba lagi.");
       }
-    } catch (err) {
-      if (axios.isAxiosError(err) && err.response) {
-        setErrorSignUp(
-          err.response.data.message || "Terjadi kesalahan. Silahkan coba lagi"
-        );
-      } else {
-        setErrorSignUp("Terjadi kesalahan. Silahkan coba lagi");
-      }
+    } catch (err: any) {
+      setErrorSignUp(err.response?.data?.message || "Terjadi kesalahan.");
     } finally {
       setIsSubmittingSignUp(false);
     }
   };
-
-  const [showPopup, setShowPopup] = useState(false);
 
   const handlePopupClose = () => {
     setShowPopup(false);
