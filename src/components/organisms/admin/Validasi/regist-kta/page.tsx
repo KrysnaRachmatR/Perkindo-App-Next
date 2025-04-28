@@ -194,7 +194,7 @@ const ValidasiKTA = () => {
             <table className="min-w-full divide-y divide-gray-200 bg-white dark:bg-gray-900">
               <thead className="bg-gray-100 dark:bg-gray-800">
                 <tr>
-                  {["No", "Nama Perusahaan", "Nama Direktur", "Email", "Alamat", "Kota / Kabupaten", "Aksi"].map((head) => (
+                  {["No", "Nama Perusahaan", "Nama Direktur", "Email", "Alamat", "Kota / Kabupaten", "Tanggal Daftar", "Aksi"].map((head) => (
                     <th
                       key={head}
                       className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
@@ -216,6 +216,7 @@ const ValidasiKTA = () => {
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.email}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.alamat_perusahaan}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.kota_kabupaten}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.created_at}</td>
                       <td className="px-4 py-3 text-center space-y-2">
                         <button
                           onClick={() => handleApprove(kta.id)}
@@ -267,7 +268,7 @@ const ValidasiKTA = () => {
             <table className="min-w-full divide-y divide-gray-200 bg-white dark:bg-gray-900">
               <thead className="bg-gray-100 dark:bg-gray-800">
                 <tr>
-                  {["No", "Nama Perusahaan", "Nama Direktur", "Alamat", "Email","Status","Aksi",].map((head) => (
+                  {["No", "Nama Perusahaan", "Nama Direktur", "Email", "Alamat", "No KTA","Tanggal Diterima","Tanggal Exired","Status","Aksi",].map((head) => (
                     <th
                       key={head}
                       className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
@@ -286,8 +287,11 @@ const ValidasiKTA = () => {
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{index + 1}</td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{kta.nama_perusahaan}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.nama_direktur}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.alamat_perusahaan}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.email}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.alamat_perusahaan}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.no_kta}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.tanggal_diterima}</td>
+                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.expired_at}</td>
                       <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.status_aktif}</td>
                       <td className="px-4 py-3 text-center">
                         <button
