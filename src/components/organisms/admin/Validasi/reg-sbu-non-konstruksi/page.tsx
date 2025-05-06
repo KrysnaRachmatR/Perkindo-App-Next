@@ -62,32 +62,20 @@ const ValidasiSBUN = () => {
     }
   };
 
-  const searchSbun = async (keyword: string) => {
-    if (keyword.trim() === "") {
-      setFilteredSbUs([]);
-      return;
-    }
+  const searchSbun = (keyword: string) => {
+    const filtered = sbUs.filter((sbun) => {
+      const perusahaan = sbun.nama_perusahaan?.toLowerCase() || '';
+      const direktur = sbun.nama_direktur?.toLowerCase() || '';
+      const alamat = sbun.alamat_perusahaan?.toLowerCase() || '';
   
-    try {
-      const response = await axios.get("http://localhost:8000/api/sbun/search", {
-        params: { keyword },
-        headers: {
-          Accept: 'application/json',
-          // Authorization: `Bearer ${token}`,
-        },
-      });
+      return (
+        perusahaan.includes(keyword.toLowerCase()) ||
+        direktur.includes(keyword.toLowerCase()) ||
+        alamat.includes(keyword.toLowerCase())
+      );
+    });
   
-      if (response.status === 200) {
-        const results = response.data;
-        setFilteredSbUs(results);
-      } else {
-        console.warn("Gagal mengambil data:", response.status);
-        setFilteredSbUs([]);
-      }
-    } catch (error: any) {
-      console.error("Error saat pencarian:", error);
-      setFilteredSbUs([]);
-    }
+    setFilteredSbUs(filtered);
   };
   
 

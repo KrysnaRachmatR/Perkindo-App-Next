@@ -9,6 +9,7 @@ const ValidasiKTA = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -81,86 +82,55 @@ const ValidasiKTA = () => {
   };
 
   const handleDownload = async (userId: number) => {
-    if (!userId) {
-      alert("ID user tidak valid.");
-      return;
-    }
-  
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/kta/download/${userId}`, // 🔥 FIXED: Template string JS
-        {
-          responseType: "blob", // ⬅ penting agar bisa download binary file (ZIP)
-        }
-      );
-  
+      const response = await axios.get(`http://localhost:8000/api/kta/download/${userId}`, {
+        responseType: "blob",
+      });
+
       const url = window.URL.createObjectURL(new Blob([response.data]));
-  
       const link = document.createElement("a");
-      link.href = url;
-  
       const contentDisposition = response.headers["content-disposition"];
       const filename = contentDisposition
-        ? decodeURIComponent(
-            contentDisposition.split("filename=")[1]?.replace(/"/g, "")
-          )
+        ? decodeURIComponent(contentDisposition.split("filename=")[1]?.replace(/"/g, ""))
         : `KTA_${userId}.zip`;
-  
+
+      link.href = url;
       link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-  
+
       alert("File berhasil diunduh!");
     } catch (err: any) {
-      console.error("Gagal mengunduh file:", err?.response || err);
-      alert("Gagal mengunduh file. Silakan periksa server atau koneksi Anda.");
+      console.error("Gagal mengunduh file:", err);
+      alert("Gagal mengunduh file.");
     }
   };
-  
-  
-  const handleButtonClick = () => {
-    fileInputRef.current.click();
-  };
 
-  const handleFileChange = async (e) => {
-    const token = localStorage.getItem("token");
-    const file = e.target.files[0];
-    if (!file || !ktaId || !token) return;
+  // 🔍 Filter berdasarkan pencarian untuk tab Pending
+  const filteredKTAs = ktas.filter(
+    (kta) =>
+      kta.nama_perusahaan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      kta.nama_direktur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      kta.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-    const formData = new FormData();
-    formData.append("kta_file", file);
+  // 🔍 Filter berdasarkan pencarian untuk tab Aktif
+  // const filteredActiveKTAs = activeKTAs.filter(
+  //   (kta) =>
+  //     kta.nama_perusahaan?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     kta.nama_direktur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     kta.email?.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        `http://localhost:8000/api/kta/upload/${ktaId}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      alert(response.data.message);
-    } catch (error) {
-      alert("Terjadi kesalahan saat mengunggah file.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Validasi KTA</h1>
-  
+
       {/* Tab Selector */}
-      <div className="flex mb-3 space-x-4">
+      <div className="flex mb-4 space-x-4">
         <button
           onClick={() => setActiveTab(0)}
-          disabled={loading}
           className={`py-2 px-4 text-sm font-medium ${
             activeTab === 0
               ? "border-b-2 border-blue-500 text-blue-500"
@@ -171,7 +141,6 @@ const ValidasiKTA = () => {
         </button>
         <button
           onClick={() => setActiveTab(1)}
-          disabled={loading}
           className={`py-2 px-4 text-sm font-medium ${
             activeTab === 1
               ? "border-b-2 border-blue-500 text-blue-500"
@@ -181,59 +150,63 @@ const ValidasiKTA = () => {
           Aktif
         </button>
       </div>
-  
-      {/* Pending Tab */}
+
+      {/* =================== PENDING TAB =================== */}
       {activeTab === 0 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">KTA Pending</h2>
-  
-          {loading && <p className="text-gray-500">Loading...</p>}
+          <div className="mb-4">
+          </div>
+
+          {loading && <p>Loading...</p>}
           {error && <p className="text-red-500">{error}</p>}
-  
-          <div className="overflow-x-auto rounded-xl shadow-md">
-            <table className="min-w-full divide-y divide-gray-200 bg-white dark:bg-gray-900">
-              <thead className="bg-gray-100 dark:bg-gray-800">
+
+          <div className="overflow-x-auto rounded-lg shadow">
+            <table className="min-w-full divide-y divide-gray-200 bg-white">
+              <thead className="bg-gray-100">
                 <tr>
-                  {["No", "Nama Perusahaan", "Nama Direktur", "Email", "Alamat", "Kota / Kabupaten", "Tanggal Daftar", "Aksi"].map((head) => (
-                    <th
-                      key={head}
-                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                        head === "Aksi" ? "text-center" : "text-left"
-                      }`}
-                    >
+                  {[
+                    "No",
+                    "Nama Perusahaan",
+                    "Nama Direktur",
+                    "Email",
+                    "Alamat",
+                    "Kota/Kabupaten",
+                    "Tanggal Daftar",
+                    "Aksi",
+                  ].map((head) => (
+                    <th key={head} className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                       {head}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {ktas.length > 0 ? (
-                  ktas.map((kta, index) => (
-                    <tr key={kta.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{index + 1}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{kta.nama_perusahaan}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.nama_direktur}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.alamat_perusahaan}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.kota_kabupaten}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.created_at}</td>
-                      <td className="px-4 py-3 text-center space-y-2">
+              <tbody className="divide-y divide-gray-100">
+                {filteredKTAs.length > 0 ? (
+                  filteredKTAs.map((kta, index) => (
+                    <tr key={kta.id}>
+                      <td className="px-4 py-2 text-sm">{index + 1}</td>
+                      <td className="px-4 py-2 text-sm">{kta.nama_perusahaan}</td>
+                      <td className="px-4 py-2 text-sm">{kta.nama_direktur}</td>
+                      <td className="px-4 py-2 text-sm">{kta.email}</td>
+                      <td className="px-4 py-2 text-sm">{kta.alamat_perusahaan}</td>
+                      <td className="px-4 py-2 text-sm">{kta.kota_kabupaten}</td>
+                      <td className="px-4 py-2 text-sm">{kta.created_at}</td>
+                      <td className="px-4 py-2 space-y-2">
                         <button
                           onClick={() => handleApprove(kta.id)}
-                          className="w-full inline-flex items-center justify-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg shadow-md transition transform hover:scale-105"
+                          className="w-full bg-green-600 hover:bg-green-700 text-white py-1 rounded"
                         >
                           Setujui
                         </button>
                         <button
                           onClick={() => handleReject(kta.id)}
-                          className="w-full inline-flex items-center justify-center px-4 py-2 text-white text-sm font-medium rounded-lg shadow-md transition transform hover:scale-105"
-                          style={{ backgroundColor: "#BE3D2A" }}
+                          className="w-full bg-red-600 hover:bg-red-700 text-white py-1 rounded"
                         >
                           Tolak
                         </button>
                         <button
                           onClick={() => handleDownload(kta.user_id)}
-                          className="w-full inline-flex items-center justify-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1 rounded"
                         >
                           Unduh File
                         </button>
@@ -242,11 +215,8 @@ const ValidasiKTA = () => {
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-5 text-center text-sm text-gray-500 dark:text-gray-400"
-                    >
-                      Tidak ada data
+                    <td colSpan={8} className="text-center py-6 text-gray-500">
+                      Tidak ada data ditemukan.
                     </td>
                   </tr>
                 )}
@@ -255,61 +225,72 @@ const ValidasiKTA = () => {
           </div>
         </div>
       )}
-  
-      {/* Aktif Tab */}
+
+      {/* =================== AKTIF TAB =================== */}
       {activeTab === 1 && (
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-gray-800">KTA Aktif</h2>
-  
-          {loading && <p className="text-gray-500">Loading...</p>}
+          <div className="mb-4">
+            <input
+              type="text"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Cari berdasarkan nama perusahaan, direktur, atau email"
+              className="w-full md:w-1/2 p-2 border border-gray-300 rounded-md shadow-sm"
+            />
+          </div>
+
+          {loading && <p>Loading...</p>}
           {error && <p className="text-red-500">{error}</p>}
-  
-          <div className="overflow-x-auto rounded-xl shadow">
-            <table className="min-w-full divide-y divide-gray-200 bg-white dark:bg-gray-900">
-              <thead className="bg-gray-100 dark:bg-gray-800">
+
+          <div className="overflow-x-auto rounded-lg shadow">
+            <table className="min-w-full divide-y divide-gray-200 bg-white">
+              <thead className="bg-gray-100">
                 <tr>
-                  {["No", "Nama Perusahaan", "Nama Direktur", "Email", "Alamat", "No KTA","Tanggal Diterima","Tanggal Exired","Status","Aksi",].map((head) => (
-                    <th
-                      key={head}
-                      className={`px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                        head === "Aksi" ? "text-center" : "text-left"
-                      }`}
-                    >
+                  {[
+                    "No",
+                    "Nama Perusahaan",
+                    "Nama Direktur",
+                    "Email",
+                    "Alamat",
+                    "Kota/Kabupaten",
+                    "Nomor KTA",
+                    "Tanggal Daftar",
+                    "Tanggal Expired",
+                    "Aksi",
+                  ].map((head) => (
+                    <th key={head} className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                       {head}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {activeKTAs.length > 0 ? (
-                  activeKTAs.map((kta, index) => (
-                    <tr key={kta.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{index + 1}</td>
-                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">{kta.nama_perusahaan}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.nama_direktur}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.email}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.alamat_perusahaan}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.no_kta}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.tanggal_diterima}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.expired_at}</td>
-                      <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{kta.status_aktif}</td>
-                      <td className="px-4 py-3 text-center">
+              <tbody className="divide-y divide-gray-100">
+                {filteredActiveKTAs.length > 0 ? (
+                  filteredActiveKTAs.map((kta, index) => (
+                    <tr key={kta.id}>
+                      <td className="px-4 py-2 text-sm">{index + 1}</td>
+                      <td className="px-4 py-2 text-sm">{kta.nama_perusahaan}</td>
+                      <td className="px-4 py-2 text-sm">{kta.nama_direktur}</td>
+                      <td className="px-4 py-2 text-sm">{kta.email}</td>
+                      <td className="px-4 py-2 text-sm">{kta.alamat_perusahaan}</td>
+                      <td className="px-4 py-2 text-sm">{kta.kota_kabupaten}</td>
+                      <td className="px-4 py-2 text-sm">{kta.no_kta}</td>
+                      <td className="px-4 py-2 text-sm">{kta.tanggal_diterima}</td>
+                      <td className="px-4 py-2 text-sm">{kta.expired_at}</td>
+                      <td className="px-4 py-2 space-y-2">
                         <button
                           onClick={() => handleDownload(kta.user_id)}
-                          className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-md shadow-sm transition"
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-1 rounded"
                         >
-                          Unduh
+                          Unduh File
                         </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td
-                      colSpan={5}
-                      className="px-4 py-5 text-center text-sm text-gray-500 dark:text-gray-400"
-                    >
-                      Tidak ada data
+                    <td colSpan={8} className="text-center py-6 text-gray-500">
+                      Tidak ada data ditemukan.
                     </td>
                   </tr>
                 )}
@@ -319,7 +300,7 @@ const ValidasiKTA = () => {
         </div>
       )}
     </div>
-  );  
+  );
 };
 
 export default ValidasiKTA;

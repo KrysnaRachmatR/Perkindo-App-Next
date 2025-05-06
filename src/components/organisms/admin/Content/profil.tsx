@@ -106,8 +106,6 @@ const ProfileAdminPage = () => {
         }
       );
 
-      console.log(response.data);
-
       if (response.data.success) {
         setMessage(response.data.message);
         setProfile(response.data.data); // Update profile setelah berhasil
@@ -165,83 +163,84 @@ const ProfileAdminPage = () => {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <h1 className="text-3xl font-bold mb-4">Edit Profile</h1>
+    <div className="container mx-auto p-8 md:px-16 lg:px-24">
+      <h1 className="text-4xl font-semibold text-gray-800 mb-6">Edit Profile</h1>
 
       {message && <p className="text-green-500 mb-4">{message}</p>}
 
       {profile ? (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-lg font-medium">Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="col-span-1">
+              <label className="block text-lg font-medium text-gray-700">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </div>
+
+            <div className="col-span-1">
+              <label className="block text-lg font-medium text-gray-700">Section 1</label>
+              <textarea
+                name="section1"
+                value={formData.section1}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </div>
+
+            <div className="col-span-1">
+              <label className="block text-lg font-medium text-gray-700">Visi</label>
+              <textarea
+                name="visi"
+                value={formData.visi}
+                onChange={handleChange}
+                className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="block text-lg font-medium">Section 1</label>
-            <textarea
-              name="section1"
-              value={formData.section1}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium">Visi</label>
-            <textarea
-              name="visi"
-              value={formData.visi}
-              onChange={handleChange}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium">Misi</label>
+          <div className="space-y-4">
+            <label className="block text-lg font-medium text-gray-700">Misi</label>
             {formData.misi.map((misi, index) => (
-              <div key={index} className="mb-2">
+              <div key={index} className="flex items-center space-x-4">
                 <input
                   type="text"
                   value={misi}
                   onChange={(e) => handleMisiChange(index, e)}
-                  className="w-full p-2 border rounded"
+                  className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                   required
                 />
               </div>
             ))}
-          </div>
-
-          <div>
-            <label className="block text-lg font-medium">Upload Image</label>
-            <input
-              type="file"
-              onChange={handleImageChange}
-              className="w-full p-2 border rounded"
-            />
-          </div>
-
-          <div className="flex flex-col space-y-4">
             <button
               type="button"
               onClick={handleAddMisi}
-              className="bg-green-500 text-white p-2 rounded w-[30%]"
+              className="bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
             >
               Tambah Misi
             </button>
+          </div>
 
+          <div>
+            <label className="block text-lg font-medium text-gray-700">Upload Image</label>
+            <input
+              type="file"
+              onChange={handleImageChange}
+              className="w-full p-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+            />
+          </div>
+
+          <div className="flex flex-col space-y-4 mt-6">
             <button
               type="submit"
-              className="bg-blue-500 text-white p-2 rounded"
+              className="bg-green-600 text-white p-3 rounded-lg hover:bg-green-700"
               disabled={loading}
             >
               {loading ? "Saving..." : "Update Profile"}
@@ -249,7 +248,7 @@ const ProfileAdminPage = () => {
           </div>
         </form>
       ) : (
-        <p>Loading profile data...</p>
+        <p className="text-gray-500">Loading profile data...</p>
       )}
     </div>
   );

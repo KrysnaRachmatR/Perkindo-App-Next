@@ -35,17 +35,16 @@ const Galeri = () => {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("Galeri Data:", response.data);
-      setGaleri(response.data);
+      if (response.data.success) {
+        setGaleri(response.data.data); // Menyesuaikan dengan struktur respons backend
+      }
     } catch (error) {
-      console.error(error);
       setError("Failed to load data");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle input teks dan file
   const handleChange = (e) => {
     const { name, value, files } = e.target;
     if (name === "gambar") {
@@ -55,7 +54,6 @@ const Galeri = () => {
     }
   };
 
-  // Handle submit (create/update)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -63,11 +61,9 @@ const Galeri = () => {
     const token = localStorage.getItem("token");
     const data = new FormData();
 
-    // Ambil data judul dan caption dari formData
     data.append("judul", formData.judul);
     data.append("caption", formData.caption);
 
-    // Hanya tambahkan gambar jika ada gambar baru yang dipilih
     if (formData.gambar) {
       data.append("gambar", formData.gambar);
     }
@@ -78,7 +74,7 @@ const Galeri = () => {
     const method = editId ? "put" : "post";
 
     try {
-      await axios({
+      const response = await axios({
         method,
         url,
         data,
@@ -87,52 +83,55 @@ const Galeri = () => {
           "Content-Type": "multipart/form-data",
         },
       });
-      alert(editId ? "Data updated successfully" : "Data created successfully");
-      resetForm();
-      fetchData();
+
+      if (response.data.success) {
+        alert(editId ? "Data updated successfully" : "Data created successfully");
+        resetForm();
+        fetchData(); // Refresh data after submit
+      } else {
+        setError(response.data.message || "Failed to save data");
+      }
     } catch (error) {
-      console.error(error.response ? error.response.data : error.message);
-      setError(
-        error.response ? error.response.data.message : "Failed to save data"
-      );
+      setError("Failed to save data");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle edit form
   const handleEdit = (id) => {
     const galeriToEdit = galeri.find((item) => item.id === id);
     if (galeriToEdit) {
       setFormData({
         judul: galeriToEdit.judul,
         caption: galeriToEdit.caption,
-        gambar: null, // Ini untuk menjaga agar gambar tetap ada di server
+        gambar: null,
       });
       setEditId(id);
     }
   };
 
-  // Handle delete
   const handleDelete = async (id) => {
     const token = localStorage.getItem("token");
     if (confirm("Are you sure you want to delete this data?")) {
       try {
-        await axios.delete(`http://localhost:8000/api/galeri/${id}`, {
+        const response = await axios.delete(`http://localhost:8000/api/galeri/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        alert("Data deleted successfully");
-        setGaleri(galeri.filter((item) => item.id !== id));
+
+        if (response.data.success) {
+          alert("Data deleted successfully");
+          setGaleri(galeri.filter((item) => item.id !== id));
+        } else {
+          setError(response.data.message || "Failed to delete data");
+        }
       } catch (error) {
-        console.error(error);
         setError("Failed to delete data");
       }
     }
   };
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       judul: "",
@@ -140,30 +139,6 @@ const Galeri = () => {
       gambar: null,
     });
     setEditId(null);
-  };
-
-  const handleLogout = async () => {
-    try {
-      // Call the backend to log out
-      const token = localStorage.getItem("token");
-      await axios.post(
-        "http://localhost:8000/api/logout",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      // Remove token and user from localStorage
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-
-      router.push("/login");
-    } catch (error) {
-      console.error("Error during logout:", error);
-    }
   };
 
   if (loading) {
@@ -175,117 +150,97 @@ const Galeri = () => {
   }
 
   return (
-    <div className="mx-auto max-w-7xl ">
-      <div className="admin-page ">
-        <div className="main-content p-4">
-          <form
-            onSubmit={handleSubmit}
-            className="mb-4 p-4 bg-white shadow rounded dark:border-strokedark dark:bg-boxdark"
+    <div className="container mx-auto p-6">
+      <div className="bg-white shadow rounded-lg p-6 mb-8">
+        <h2 className="text-2xl font-semibold text-center mb-6">Manage Galeri</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="judul"
+            placeholder="Judul"
+            value={formData.judul}
+            onChange={handleChange}
+            required
+            className="w-full p-3 border rounded-md"
+          />
+          <textarea
+            name="caption"
+            placeholder="Caption"
+            value={formData.caption}
+            onChange={handleChange}
+            required
+            className="w-full p-3 border rounded-md"
+          />
+          <input
+            type="file"
+            name="gambar"
+            onChange={handleChange}
+            className="w-full p-3 border rounded-md"
+          />
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full p-3 bg-blue-500 text-white rounded-md"
           >
-            <h1 className="text-2xl font-bold mb-4 dark:text-white">
-              Manage Galeri
-            </h1>
-            <input
-              type="text"
-              name="judul"
-              placeholder="Judul"
-              value={formData.judul}
-              onChange={handleChange}
-              required
-              className="w-full mb-4 rounded border-2 border-[#A0AEC0] bg-transparent px-4 py-3 text-gray-500 placeholder:text-gray-400 outline-none transition duration-300 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-            />
+            {editId ? "Update" : "Create"}
+          </button>
+        </form>
+      </div>
 
-            <textarea
-              name="caption"
-              placeholder="Caption"
-              value={formData.caption}
-              onChange={handleChange}
-              required
-              className="w-full mb-4 rounded border-2 border-[#A0AEC0] bg-transparent px-4 py-3 text-gray-500 placeholder:text-gray-400 outline-none transition duration-300 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-            />
-            <input
-              type="file"
-              name="gambar"
-              onChange={handleChange}
-              className="mb-2 dark:text-white"
-            />
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="bg-primary text-white p-2 rounded"
-            >
-              {editId ? "Update" : "Create"}
-            </button>
-          </form>
-
-          <div className="galeri-list bg-white dark:bg-boxdark  dark:text-white">
-            <div className="overflow-x-auto ">
-              <table className="min-w-full divide-y divide-gray-200 ">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Judul
-                    </th>
-                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Caption
-                    </th>
-                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Gambar
-                    </th>
-                    <th className="px-6 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-2xl font-semibold text-center mb-4">Galeri List</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full table-auto">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-6 py-2 text-left text-sm font-medium text-gray-600">Judul</th>
+                <th className="px-6 py-2 text-left text-sm font-medium text-gray-600">Caption</th>
+                <th className="px-6 py-2 text-left text-sm font-medium text-gray-600">Gambar</th>
+                <th className="px-6 py-2 text-left text-sm font-medium text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {galeri.length > 0 ? (
+                galeri.map((item) => (
+                  <tr key={item.id} className="border-b">
+                    <td className="px-6 py-4">{item.judul}</td>
+                    <td className="px-6 py-4 max-w-xs break-words">{item.caption}</td>
+                    <td className="px-6 py-4">
+                      {item.gambar ? (
+                        <img
+                          src={`http://localhost:8000/storage/${item.gambar}`}
+                          alt={item.judul}
+                          className="w-20 h-20 object-cover"
+                        />
+                      ) : (
+                        <span>No image available</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => handleEdit(item.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="ml-4 text-red-600 hover:text-red-800"
+                      >
+                        Delete
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200 dark:bg-boxdark dark:text-white">
-                  {Array.isArray(galeri) && galeri.length > 0 ? (
-                    galeri.map((item) => (
-                      <tr key={item.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {item.judul}
-                        </td>
-                        <td className="px-6 py-4 max-w-xs break-words word-break break-word">
-                          {/* Memastikan caption yang panjang tidak tembus */}
-                          {item.caption}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          {item.gambar ? (
-                            <img
-                             src={`https://localhost:8000/storage/galeri/${item.id}/${item.gambar}`}
-                              alt={item.judul}
-                              width={100}
-                            />
-                          ) : (
-                            <span>No image available</span> // Pesan jika gambar tidak ada
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <button
-                            onClick={() => handleEdit(item.id)}
-                            className="text-primary"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDelete(item.id)}
-                            className="text-red ml-4"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="4" className="text-center py-4">
-                        No data available
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center py-4 text-gray-500">
+                    No data available
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
