@@ -9,9 +9,9 @@
     @apply relative z-1 bg-whiten font-satoshi text-base font-normal text-body;
   }
 
-  body.dark {
+  /* body.dark {
     @apply bg-black text-white;
-  }
+  } */
 }
 
 @layer components {

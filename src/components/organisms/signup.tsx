@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { AiFillEye, AiFillEyeInvisible } from "react-icons/ai";
+import { API_URL } from "@/hooks/ApiConfig";
 
 const SignUpLayout = () => {
   const [signIn, toggle] = useState(true);
@@ -45,7 +46,7 @@ const SignUpLayout = () => {
 
     setIsSubmittingSignIn(true);
     try {
-      const response = await axios.post("http://localhost:8000/api/login", {
+      const response = await axios.post(`${API_URL}/login`, {
         email: signInUsername,
         password: signInPassword,
       });
@@ -76,7 +77,7 @@ const SignUpLayout = () => {
 
     setIsSubmittingSignUp(true);
     try {
-      const response = await axios.post("http://localhost:8000/api/register", {
+      const response = await axios.post(`${API_URL}/register`, {
         nama_perusahaan,
         nama_direktur,
         nama_penanggung_jawab,
@@ -236,7 +237,7 @@ const SignUpLayout = () => {
             onSubmit={handleSubmit}
             className="bg-white flex items-center justify-center flex-col px-12 h-full text-center"
           >
-            <h1 className="font-bold m-0 tracking-widest">LOGIN</h1>
+            <h1 className="font-bold m-0 tracking-widest" style={{color:'#0a1c57'}}>LOGIN</h1>
             <input
               id="email"
               type="email"

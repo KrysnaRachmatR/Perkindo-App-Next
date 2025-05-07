@@ -8,6 +8,11 @@ import SidebarItem from "./SidebarItem";
 import ClickOutside from "./ClickOutside";
 import useLocalStorage from "@/hooks/useLocalStorage";
 
+
+import {
+  LogOutIcon
+} from "lucide-react";
+
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: (arg: boolean) => void;
@@ -121,6 +126,13 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const pathname = usePathname();
   const [pageName, setPageName] = useLocalStorage("selectedMenu", "dashboard");
 
+  const onLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    window.location.pathname = "/";
+  };
+
   return (
     <ClickOutside onClick={() => setSidebarOpen(false)}>
       <aside
@@ -188,6 +200,21 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
             ))}
           </nav>
           {/* <!-- Sidebar Menu --> */}
+        </div>
+
+        {/* Logout Button */}
+        <div className="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={onLogout}
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-white dark:bg-gray-800 border px-4 py-2 text-sm font-semibold text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-700 hover:shadow-md transition dark:bg-rose-950"
+          >
+            {/* <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M3 10a1 1 0 011-1h9V7l4 3-4 3v-2H4a1 1 0 01-1-1z" />
+              <path d="M5 3a2 2 0 00-2 2v2a1 1 0 102 0V5h10v10H5v-2a1 1 0 10-2 0v2a2 2 0 002 2h10a2 2 0 002-2V5a2 2 0 00-2-2H5z" />
+            </svg> */}
+            <LogOutIcon className="w-5 h-5"/>
+            Logout
+          </button>
         </div>
       </aside>
     </ClickOutside>
